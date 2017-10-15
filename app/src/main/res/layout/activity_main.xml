@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent" android:id="@+id/container">
+
+    <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:id="@+id/menu">
+        <TextView
+                android:text="Status:"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:id="@+id/statusLabel" android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.AppCompat" android:textStyle="bold"/>
+        <TextView
+                android:text="Not Running"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:id="@+id/statusDisplay" android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.AppCompat" android:textStyle="bold"/>
+        <Button
+                android:text="START/STOP"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:id="@+id/start_stop" android:layout_weight="1"
+                android:onClick="startStopRecording"/>
+    </LinearLayout>
+</LinearLayout>
