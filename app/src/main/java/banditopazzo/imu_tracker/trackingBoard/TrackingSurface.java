@@ -12,10 +12,11 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import banditopazzo.imu_tracker.accelerometer.AccListener;
+import banditopazzo.imu_tracker.accelerometer.UpgradableSurface;
 import banditopazzo.imu_tracker.models.PointD;
 import banditopazzo.imu_tracker.gyroscope.GyroListener;
 
-public class TrackingSurface extends SurfaceView implements UpgradableSurface{
+public class TrackingSurface extends SurfaceView implements UpgradableSurface {
 
     //Holder
     private SurfaceHolder holder;
@@ -116,9 +117,17 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface{
             if (lastPosition == null)
                 setStartingPoint();
 
+            final float SCALA = 3000.0f;
+            //Scala i valori
+            double newX = newP.getX()*SCALA;
+            double newY = newP.getY()*SCALA;
+
             //Sum the center position to obtain real coordinates
-            double newX = newP.getX() + center.getX();
-            double newY = newP.getY() + center.getY();
+            newX = newX + center.getX();
+            newY = newY + center.getY();
+
+
+
 
             //If the position doesn't change, don't do anything
             if (newX == lastPosition.getX() && newY == lastPosition.getY())

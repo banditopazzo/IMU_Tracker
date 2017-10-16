@@ -6,7 +6,6 @@ import android.hardware.SensorEventListener;
 import android.util.Log;
 
 import banditopazzo.imu_tracker.models.PointD;
-import banditopazzo.imu_tracker.trackingBoard.UpgradableSurface;
 
 import java.util.Date;
 
@@ -30,7 +29,11 @@ public class AccListener implements SensorEventListener {
     private double vxt;
     private double vyt;
 
+    //Acceleration
+    private double ax;
+    private double ay;
 
+    //Constructor
     public AccListener(UpgradableSurface surface, RotationManager rm) {
 
         //Set the start time
@@ -46,6 +49,10 @@ public class AccListener implements SensorEventListener {
         this.vxt = 0;
         this.vyt = 0;
 
+        //Set acceleration to ZERO
+        this.ax = 0;
+        this.ay = 0;
+
         Log.d(TAG, "Accelerometer Listener created");
 
     }
@@ -53,33 +60,37 @@ public class AccListener implements SensorEventListener {
     @Override
     public void onSensorChanged(SensorEvent event) {
 
-        Thread thread = Thread.currentThread();
-        Log.d(TAG, "THD: " + thread.getName());
-
         //calculate dt update datetime
         long now = (new Date()).getTime();
         double dt = ((now - t))/1000.000; // cast to double and conversion to seconds
         this.t = now;
 
         //read acceleration
-        float ax = -event.values[0];
-        float ay = event.values[1];
+        double current_ax = event.values[0];
+        double current_ay = -event.values[1];
 
         //process acceleration with data from gyroscope
         double theta = rm.getTheta();
-        //TODO: calculate correct acceleration for x and y
+        current_ax = Math.cos(theta)*current_ax - Math.sin(theta)*current_ay;
+        current_ay = Math.sin(theta)*current_ax + Math.cos(theta)*current_ay;
+        Log.d(TAG, "Theta: " + theta);
 
-        float SOGLIA = 0.25f;
-
-        //TODO: provare a eliminare la soglia
-        //Se non viene superata la soglia, considera nulla l'accelerazione
-        if (Math.abs(ax)<SOGLIA) {
-            ax=0;
+        //Se non viene superata la soglia, considera nulla l'accelerazione e la velocità
+        final float SOGLIA = 0.15f;
+        if (Math.abs(current_ax)<SOGLIA) {
+            current_ax=0;
+            vxt=0;
         }
-        if (Math.abs(ay)<SOGLIA){
-            ay=0;
+        if (Math.abs(current_ay)<SOGLIA){
+            current_ay=0;
+            vyt=0;
         }
 
+        //Filtro base
+        ax = 0.9 * ax + 0.1*(current_ax);
+        ay = 0.9 * ay + 0.1*(current_ay);
+
+        //Log processed acceleration
         Log.d(TAG, "AX " + ax);
         Log.d(TAG, "AY " + ay);
 
@@ -90,7 +101,6 @@ public class AccListener implements SensorEventListener {
         //update y position and velocity
         yt = 1 / 2 * ay * Math.pow(dt, 2) + vyt * dt + yt;
         vyt = ay * dt + vyt;
-
 
         //Update Surface
         surface.updateSurface(new PointD(xt,yt));
