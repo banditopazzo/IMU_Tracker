@@ -4,17 +4,11 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.hardware.Sensor;
-import android.hardware.SensorManager;
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import banditopazzo.imu_tracker.accelerometer.AccListener;
 import banditopazzo.imu_tracker.accelerometer.UpgradableSurface;
 import banditopazzo.imu_tracker.models.PointD;
-import banditopazzo.imu_tracker.gyroscope.GyroListener;
 
 public class TrackingSurface extends SurfaceView implements UpgradableSurface {
 
@@ -28,35 +22,12 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface {
     private PointD lastPosition;
     private PointD center;
 
-    //Sensors
-    private SensorManager SM;
-    private Sensor accelerometer, gyroscope;
-
-    //Listeners
-    private AccListener accListener;
-    private GyroListener gyroListener;
-
-    //Handler
-    private HandlerThread handlerThread;
-    private Handler handler;
-
     //Constructor
     public TrackingSurface(Context context) {
         super(context);
+
+        //Set up holder
         this.holder = getHolder();
-
-        //Create sensor manager
-        SM = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
-
-        //Get Accelerometer
-        accelerometer = SM.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        //Get Gyroscope
-        gyroscope = SM.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-
-        //Set up Handler
-        this.handlerThread = new HandlerThread("SensorHandlerThread");
-        this.handlerThread.start();
-        this.handler = new Handler(handlerThread.getLooper());
 
         Log.d(TAG, "Surface created");
     }
@@ -73,41 +44,6 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface {
         holder.unlockCanvasAndPost(c);
     }
 
-    public void start(){
-
-        //Attiva Listeners
-        gyroListener = new GyroListener();
-        SM.registerListener(gyroListener, gyroscope, SensorManager.SENSOR_DELAY_GAME, handler);
-        accListener = new AccListener(this, gyroListener);
-        SM.registerListener(accListener, accelerometer, SensorManager.SENSOR_DELAY_GAME,handler);
-
-    }
-
-
-    public void stop(){
-        //Stop Listeners
-        SM.unregisterListener(gyroListener);
-        SM.unregisterListener(accListener);
-        //Delete Listeners
-        gyroListener=null;
-        accListener=null;
-        handler = null;
-        handlerThread.quit(); //TODO: meglio quitSafely(), modificare l'API target
-        //TODO: cancella il percorso
-    }
-
-    public void pause() {
-        //TODO: controllare il funzionamento
-        SM.unregisterListener(gyroListener);
-        SM.unregisterListener(accListener);
-    }
-
-    public void resume() {
-        //TODO: controllare il funzionamento
-        SM.registerListener(gyroListener, gyroscope, SensorManager.SENSOR_DELAY_GAME, handler);
-        SM.registerListener(accListener, accelerometer, SensorManager.SENSOR_DELAY_GAME,handler);
-    }
-
     //Dato un nuovo punto costruisce una retta dal punto precendente al nuovo punto se questi sono diversi
     @Override
     public void updateSurface(PointD newP) {
@@ -117,17 +53,14 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface {
             if (lastPosition == null)
                 setStartingPoint();
 
-            final float SCALA = 3000.0f;
             //Scala i valori
+            final float SCALA = 3000.0f;
             double newX = newP.getX()*SCALA;
             double newY = newP.getY()*SCALA;
 
             //Sum the center position to obtain real coordinates
             newX = newX + center.getX();
             newY = newY + center.getY();
-
-
-
 
             //If the position doesn't change, don't do anything
             if (newX == lastPosition.getX() && newY == lastPosition.getY())
@@ -150,6 +83,8 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface {
                     (float) newY,
                     p
             );
+
+            //Commit changes
             holder.unlockCanvasAndPost(c);
 
             //Log Old and New positions

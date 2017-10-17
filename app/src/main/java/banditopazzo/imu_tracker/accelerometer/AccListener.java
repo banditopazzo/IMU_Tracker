@@ -60,9 +60,9 @@ public class AccListener implements SensorEventListener {
     @Override
     public void onSensorChanged(SensorEvent event) {
 
-        //calculate dt update datetime
+        //calculate dt and update datetime
         long now = (new Date()).getTime();
-        double dt = ((now - t))/1000.000; // cast to double and conversion to seconds
+        double dt = (now - t) / 1000.000; // conversion to seconds and automatic conversion to double
         this.t = now;
 
         //read acceleration
@@ -76,7 +76,7 @@ public class AccListener implements SensorEventListener {
         Log.d(TAG, "Theta: " + theta);
 
         //Se non viene superata la soglia, considera nulla l'accelerazione e la velocità
-        final float SOGLIA = 0.15f;
+        final float SOGLIA = 0.20f;
         if (Math.abs(current_ax)<SOGLIA) {
             current_ax=0;
             vxt=0;
@@ -87,8 +87,8 @@ public class AccListener implements SensorEventListener {
         }
 
         //Filtro base
-        ax = 0.9 * ax + 0.1*(current_ax);
-        ay = 0.9 * ay + 0.1*(current_ay);
+        ax = 0.9 * ax + 0.1 * (current_ax);
+        ay = 0.9 * ay + 0.1 * (current_ay);
 
         //Log processed acceleration
         Log.d(TAG, "AX " + ax);
