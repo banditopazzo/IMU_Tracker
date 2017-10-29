@@ -5,11 +5,17 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.util.Log;
 
+import banditopazzo.imu_tracker.gyroscope.AccelerationManager;
 import banditopazzo.imu_tracker.models.PointD;
 
 import java.util.Date;
 
-public class AccListener implements SensorEventListener {
+public class AccListener implements SensorEventListener, AccelerationManager{
+
+    private final float SOGLIA = 0.20f;
+
+    //Last Forces
+    private volatile float[] forces;
 
     //Links to Entities
     private UpgradableSurface surface;
@@ -33,6 +39,9 @@ public class AccListener implements SensorEventListener {
     private double ax;
     private double ay;
 
+    //offsets
+    private float[] offsets;
+
     //Constructor
     public AccListener(UpgradableSurface surface, RotationManager rm) {
 
@@ -53,8 +62,15 @@ public class AccListener implements SensorEventListener {
         this.ax = 0;
         this.ay = 0;
 
+        //Set offsets to ZERO
+        offsets = new float[]{0,0,0};
+
         Log.d(TAG, "Accelerometer Listener created");
 
+    }
+
+    public void setOffsets(float[] offsets) {
+        this.offsets = offsets;
     }
 
     @Override
@@ -66,8 +82,11 @@ public class AccListener implements SensorEventListener {
         this.t = now;
 
         //read acceleration
-        double current_ax = event.values[0];
-        double current_ay = -event.values[1];
+        double current_ax = event.values[0] - offsets[0];
+        double current_ay = -event.values[1] - offsets[1];
+
+        //update forces
+        forces = event.values;
 
         //process acceleration with data from gyroscope
         double theta = rm.getTheta();
@@ -76,7 +95,6 @@ public class AccListener implements SensorEventListener {
         Log.d(TAG, "Theta: " + theta);
 
         //Se non viene superata la soglia, considera nulla l'accelerazione e la velocità
-        final float SOGLIA = 0.20f;
         if (Math.abs(current_ax)<SOGLIA) {
             current_ax=0;
             vxt=0;
@@ -110,6 +128,10 @@ public class AccListener implements SensorEventListener {
     @Override
     public void onAccuracyChanged(Sensor sensor, int i) {
         //Not used
+    }
+
+    public float[] getForces() {
+        return forces;
     }
 }
 

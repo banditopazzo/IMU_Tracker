@@ -9,20 +9,39 @@ import java.util.Date;
 
 public class GyroListener implements RotationManager, SensorEventListener {
 
+    final float SOGLIA = 0.02f;
+    final float GRAVITY = 9.81f;
+
+    //AccelerationManager
+    private AccelerationManager am;
+
     //last update time
     private double t;
-    private double gz;
 
+    //theta
     private double theta;
 
+    //offsets
+    private float[] offsets;
+
+    //Constructor
     public GyroListener() {
 
         //Set the start time
         this.t = new Date().getTime();
 
+        //Set variables to zero
         theta=0.0f;
-        gz=0;
+        offsets = new float[]{0,0,0};
 
+    }
+
+    public void setOffsets(float[] offsets) {
+        this.offsets = offsets;
+    }
+
+    public void setAccelerationManager(AccelerationManager am) {
+        this.am = am;
     }
 
     @Override
@@ -34,12 +53,40 @@ public class GyroListener implements RotationManager, SensorEventListener {
         this.t = now;
 
         //Read gz
-        gz = event.values[2];
+        float gz = event.values[2] - offsets[2];
 
-        final float SOGLIA = 0.02f;
+        //TODO: Test soglia: eliminare??
+        if (gz<SOGLIA) {
+            return;
+        }
 
-        if (gz>SOGLIA)
-            theta = theta + dt*gz;
+        //TODO: synchronized su theta tutto questo blocco da qua fino alla fine
+        //Metodo base
+        theta = theta + dt * gz;
+
+        //Complementary filter
+        //Esegui il complementary filter solo se è presente un AccelerationManager
+        if (am != null) {
+
+            //Ottieni forza totale dall'AccelerationManager
+            float[] forces = am.getForces();
+
+            //Se forces è nullo, non si può fare nulla
+            if (forces == null)
+                return;
+
+            //Somma i valori assoluti delle forze
+            float forceMagnitudeApprox = Math.abs(forces[0]) + Math.abs(forces[1]) + Math.abs(forces[2]);
+
+            if (forceMagnitudeApprox > 0.5 * GRAVITY && forceMagnitudeApprox < 2 * GRAVITY) {
+
+                //TODO: non sicuro sugli indici di forces
+                double pitchAcc = Math.atan2(forces[0], forces[1]) * 180 / Math.PI;
+
+                theta = theta * 0.98 + pitchAcc * 0.02;
+
+            }
+        }
 
     }
 

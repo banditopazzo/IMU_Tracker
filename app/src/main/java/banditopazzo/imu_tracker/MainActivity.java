@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import banditopazzo.imu_tracker.SensorCommon.OffsetListener;
 import banditopazzo.imu_tracker.accelerometer.AccListener;
 import banditopazzo.imu_tracker.gyroscope.GyroListener;
 import banditopazzo.imu_tracker.trackingBoard.TrackingSurface;
@@ -30,6 +31,10 @@ public class MainActivity extends AppCompatActivity {
     //Sensors
     private SensorManager SM;
     private Sensor accelerometer, gyroscope;
+
+    //Offsets
+    private float[] accOffsets;
+    private float[] gyroOffsets;
 
     //Listeners
     private AccListener accListener;
@@ -71,10 +76,18 @@ public class MainActivity extends AppCompatActivity {
     public void startStopRecording(View v){
         if (!running) {
 
-            //Start tracking on the surface - Start listeners
+            //TODO: se vuoti??
+            loadOffsets();
+
+            //Set up listeners
             gyroListener = new GyroListener();
-            SM.registerListener(gyroListener, gyroscope, SensorManager.SENSOR_DELAY_GAME, handler);
+            gyroListener.setOffsets(gyroOffsets);
             accListener = new AccListener(trackingSurface, gyroListener);
+            accListener.setOffsets(accOffsets);
+            gyroListener.setAccelerationManager(accListener);
+
+            //Start listeners
+            SM.registerListener(gyroListener, gyroscope, SensorManager.SENSOR_DELAY_GAME, handler);
             SM.registerListener(accListener, accelerometer, SensorManager.SENSOR_DELAY_GAME,handler);
 
             //Update status and UI
@@ -122,6 +135,29 @@ public class MainActivity extends AppCompatActivity {
         //TODO: controllare il funzionamento
         SM.registerListener(gyroListener, gyroscope, SensorManager.SENSOR_DELAY_GAME, handler);
         SM.registerListener(accListener, accelerometer, SensorManager.SENSOR_DELAY_GAME,handler);
+    }
+
+    private void loadOffsets() {
+
+        OffsetListener accOffsetListener = new OffsetListener();
+        OffsetListener gyroOffsetListener = new OffsetListener();
+
+        SM.registerListener(accOffsetListener, accelerometer, SensorManager.SENSOR_DELAY_FASTEST, handler);
+        SM.registerListener(gyroOffsetListener, gyroscope, SensorManager.SENSOR_DELAY_FASTEST, handler);
+
+        //TODO: Fare meglio
+        try {
+            wait(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        SM.unregisterListener(accOffsetListener);
+        SM.unregisterListener(gyroOffsetListener);
+
+        accOffsets = accOffsetListener.getFinalResults();
+        gyroOffsets = gyroOffsetListener.getFinalResults();
+
     }
 
 }
