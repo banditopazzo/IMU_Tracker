@@ -73,8 +73,20 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface {
             Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
             p.setStyle(Paint.Style.STROKE);
             p.setStrokeWidth(8);
-            p.setColor(Color.RED);
 
+            //Sfondo
+            c.drawColor(Color.BLACK);
+
+            //Centro
+            p.setColor(Color.YELLOW);
+            c.drawPoint((float) center.getX(), (float) center.getY(), p);
+
+            //Punto posizione
+            p.setColor(Color.RED);
+            c.drawPoint((float) newX, (float) newY, p);
+
+
+            /*
             //Draw line
             c.drawLine(
                     (float) lastPosition.getX(),
@@ -82,7 +94,7 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface {
                     (float) newX,
                     (float) newY,
                     p
-            );
+            );*/
 
             //Commit changes
             holder.unlockCanvasAndPost(c);

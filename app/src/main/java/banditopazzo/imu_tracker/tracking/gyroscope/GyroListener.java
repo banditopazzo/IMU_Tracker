@@ -56,7 +56,7 @@ public class GyroListener implements RotationManager, SensorEventListener {
         float gz = event.values[2] - offsets[2];
 
         //TODO: Test soglia: eliminare??
-        if (gz<SOGLIA) {
+        if (Math.abs(gz)<SOGLIA) {
             return;
         }
 

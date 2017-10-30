@@ -11,7 +11,6 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 import banditopazzo.imu_tracker.calibration.CalibrationHandler;
 import banditopazzo.imu_tracker.calibration.models.CalibrationParams;
 import banditopazzo.imu_tracker.calibration.CalibrationTask;
@@ -20,8 +19,6 @@ import banditopazzo.imu_tracker.tracking.accelerometer.AccListener;
 import banditopazzo.imu_tracker.tracking.gyroscope.GyroListener;
 import banditopazzo.imu_tracker.tracking.trackingBoard.TrackingSurface;
 
-import java.util.concurrent.ExecutionException;
-
 
 public class MainActivity extends AppCompatActivity implements CalibrationHandler {
 
@@ -29,7 +26,7 @@ public class MainActivity extends AppCompatActivity implements CalibrationHandle
     private boolean running = false;
 
     //Logging
-    private String TAG = "SensorEvent";
+    private String TAG = "MAIN THREAD";
 
     //Views
     private TextView statusDisplay;
@@ -138,8 +135,6 @@ public class MainActivity extends AppCompatActivity implements CalibrationHandle
     @Override
     public void onCalibration(OffsetsResults results) {
 
-
-
         //Offsets
         float[] accOffsets;
         float[] gyroOffsets;
@@ -153,8 +148,8 @@ public class MainActivity extends AppCompatActivity implements CalibrationHandle
             gyroOffsets = new float[]{0,0,0};
         }
 
-        Log.d("DEBUG", "accOffsets: "  + accOffsets[0] + " " + accOffsets[1] + " " + accOffsets[2]);
-        Log.d("DEBUG", "gyroOffsets: " + gyroOffsets[0] + " " + gyroOffsets[1] + " " + gyroOffsets[2]);
+        Log.d("OFFSET", "accOffsets: "  + accOffsets[0] + " " + accOffsets[1] + " " + accOffsets[2]);
+        Log.d("OFFSET", "gyroOffsets: " + gyroOffsets[0] + " " + gyroOffsets[1] + " " + gyroOffsets[2]);
 
 
         //Set up listeners
@@ -181,6 +176,4 @@ public class MainActivity extends AppCompatActivity implements CalibrationHandle
         statusDisplay.setText("Calibration..." + value);
     }
 }
-
-//TODO: forse si puo passare il riferimento ad oggetto PuntoD da mainActivity ad AccListener e non serve richiamare updateUI, verificare...
 
