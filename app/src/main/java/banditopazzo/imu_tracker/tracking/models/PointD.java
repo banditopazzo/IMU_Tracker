@@ -1,4 +1,4 @@
-package banditopazzo.imu_tracker.models;
+package banditopazzo.imu_tracker.tracking.models;
 
 public class PointD {
     private double x;

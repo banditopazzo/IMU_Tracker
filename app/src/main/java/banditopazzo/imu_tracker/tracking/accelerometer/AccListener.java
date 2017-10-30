@@ -1,18 +1,18 @@
-package banditopazzo.imu_tracker.accelerometer;
+package banditopazzo.imu_tracker.tracking.accelerometer;
 
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.util.Log;
 
-import banditopazzo.imu_tracker.gyroscope.AccelerationManager;
-import banditopazzo.imu_tracker.models.PointD;
+import banditopazzo.imu_tracker.tracking.gyroscope.AccelerationManager;
+import banditopazzo.imu_tracker.tracking.models.PointD;
 
 import java.util.Date;
 
 public class AccListener implements SensorEventListener, AccelerationManager{
 
-    private final float SOGLIA = 0.20f;
+    private final float SOGLIA = 0.25f;
 
     //Last Forces
     private volatile float[] forces;

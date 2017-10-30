@@ -1,4 +1,4 @@
-package banditopazzo.imu_tracker.trackingBoard;
+package banditopazzo.imu_tracker.tracking.trackingBoard;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -7,8 +7,8 @@ import android.graphics.Paint;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import banditopazzo.imu_tracker.accelerometer.UpgradableSurface;
-import banditopazzo.imu_tracker.models.PointD;
+import banditopazzo.imu_tracker.tracking.accelerometer.UpgradableSurface;
+import banditopazzo.imu_tracker.tracking.models.PointD;
 
 public class TrackingSurface extends SurfaceView implements UpgradableSurface {
 

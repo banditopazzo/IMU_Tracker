@@ -1,4 +1,4 @@
-package banditopazzo.imu_tracker.gyroscope;
+package banditopazzo.imu_tracker.tracking.gyroscope;
 
 public interface AccelerationManager {
     float[] getForces();

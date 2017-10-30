@@ -1,9 +1,9 @@
-package banditopazzo.imu_tracker.gyroscope;
+package banditopazzo.imu_tracker.tracking.gyroscope;
 
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
-import banditopazzo.imu_tracker.accelerometer.RotationManager;
+import banditopazzo.imu_tracker.tracking.accelerometer.RotationManager;
 
 import java.util.Date;
 
@@ -65,8 +65,9 @@ public class GyroListener implements RotationManager, SensorEventListener {
         theta = theta + dt * gz;
 
         //Complementary filter
+        boolean attivo = false;
         //Esegui il complementary filter solo se è presente un AccelerationManager
-        if (am != null) {
+        if (am != null && attivo) {
 
             //Ottieni forza totale dall'AccelerationManager
             float[] forces = am.getForces();
@@ -81,7 +82,7 @@ public class GyroListener implements RotationManager, SensorEventListener {
             if (forceMagnitudeApprox > 0.5 * GRAVITY && forceMagnitudeApprox < 2 * GRAVITY) {
 
                 //TODO: non sicuro sugli indici di forces
-                double pitchAcc = Math.atan2(forces[0], forces[1]) * 180 / Math.PI;
+                double pitchAcc = Math.atan2(forces[1], forces[2]) * 180 / Math.PI;
 
                 theta = theta * 0.98 + pitchAcc * 0.02;
 

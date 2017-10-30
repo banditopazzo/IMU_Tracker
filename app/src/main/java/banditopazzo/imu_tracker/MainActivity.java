@@ -8,15 +8,22 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import banditopazzo.imu_tracker.SensorCommon.OffsetListener;
-import banditopazzo.imu_tracker.accelerometer.AccListener;
-import banditopazzo.imu_tracker.gyroscope.GyroListener;
-import banditopazzo.imu_tracker.trackingBoard.TrackingSurface;
+import android.widget.Toast;
+import banditopazzo.imu_tracker.calibration.CalibrationHandler;
+import banditopazzo.imu_tracker.calibration.models.CalibrationParams;
+import banditopazzo.imu_tracker.calibration.CalibrationTask;
+import banditopazzo.imu_tracker.calibration.models.OffsetsResults;
+import banditopazzo.imu_tracker.tracking.accelerometer.AccListener;
+import banditopazzo.imu_tracker.tracking.gyroscope.GyroListener;
+import banditopazzo.imu_tracker.tracking.trackingBoard.TrackingSurface;
+
+import java.util.concurrent.ExecutionException;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements CalibrationHandler {
 
     //Status
     private boolean running = false;
@@ -32,10 +39,6 @@ public class MainActivity extends AppCompatActivity {
     private SensorManager SM;
     private Sensor accelerometer, gyroscope;
 
-    //Offsets
-    private float[] accOffsets;
-    private float[] gyroOffsets;
-
     //Listeners
     private AccListener accListener;
     private GyroListener gyroListener;
@@ -48,6 +51,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //Display always on
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         //Get status view
         statusDisplay = (TextView) findViewById(R.id.statusDisplay);
@@ -76,25 +82,13 @@ public class MainActivity extends AppCompatActivity {
     public void startStopRecording(View v){
         if (!running) {
 
-            //TODO: se vuoti??
-            loadOffsets();
+            //Setup Calibration Task
+            CalibrationParams calParams = new CalibrationParams(SM,handler);
+            CalibrationTask calibrationTask = new CalibrationTask(this);
 
-            //Set up listeners
-            gyroListener = new GyroListener();
-            gyroListener.setOffsets(gyroOffsets);
-            accListener = new AccListener(trackingSurface, gyroListener);
-            accListener.setOffsets(accOffsets);
-            gyroListener.setAccelerationManager(accListener);
+            calibrationTask.execute(calParams);
 
-            //Start listeners
-            SM.registerListener(gyroListener, gyroscope, SensorManager.SENSOR_DELAY_GAME, handler);
-            SM.registerListener(accListener, accelerometer, SensorManager.SENSOR_DELAY_GAME,handler);
-
-            //Update status and UI
-            running = true;
-            statusDisplay.setText("Running");
-
-            Log.d(TAG,"Started Tracking");
+            //Tracking starts asynchronously
 
         } else {
 
@@ -105,10 +99,6 @@ public class MainActivity extends AppCompatActivity {
             //Delete Listeners
             gyroListener=null;
             accListener=null;
-
-            //Delete handler and stop handlerThread
-            handler = null;
-            handlerThread.quit(); //TODO: meglio quitSafely(), modificare l'API target
 
             //TODO: cancella il percorso
 
@@ -137,29 +127,59 @@ public class MainActivity extends AppCompatActivity {
         SM.registerListener(accListener, accelerometer, SensorManager.SENSOR_DELAY_GAME,handler);
     }
 
-    private void loadOffsets() {
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        //Delete handler and stop handlerThread
+        handler = null;
+        handlerThread.quit(); //TODO: meglio quitSafely(), modificare l'API target
+    }
 
-        OffsetListener accOffsetListener = new OffsetListener();
-        OffsetListener gyroOffsetListener = new OffsetListener();
+    @Override
+    public void onCalibration(OffsetsResults results) {
 
-        SM.registerListener(accOffsetListener, accelerometer, SensorManager.SENSOR_DELAY_FASTEST, handler);
-        SM.registerListener(gyroOffsetListener, gyroscope, SensorManager.SENSOR_DELAY_FASTEST, handler);
 
-        //TODO: Fare meglio
-        try {
-            wait(5000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+
+        //Offsets
+        float[] accOffsets;
+        float[] gyroOffsets;
+
+        //Load offsets
+        if (results != null) {
+            accOffsets = results.getAccOffsets();
+            gyroOffsets = results.getGyroOffsets();
+        } else {
+            accOffsets = new float[]{0,0,0};
+            gyroOffsets = new float[]{0,0,0};
         }
 
-        SM.unregisterListener(accOffsetListener);
-        SM.unregisterListener(gyroOffsetListener);
+        Log.d("DEBUG", "accOffsets: "  + accOffsets[0] + " " + accOffsets[1] + " " + accOffsets[2]);
+        Log.d("DEBUG", "gyroOffsets: " + gyroOffsets[0] + " " + gyroOffsets[1] + " " + gyroOffsets[2]);
 
-        accOffsets = accOffsetListener.getFinalResults();
-        gyroOffsets = gyroOffsetListener.getFinalResults();
+
+        //Set up listeners
+        gyroListener = new GyroListener();
+        gyroListener.setOffsets(gyroOffsets);
+        accListener = new AccListener(trackingSurface, gyroListener);
+        accListener.setOffsets(accOffsets);
+        gyroListener.setAccelerationManager(accListener);
+
+        //Start listeners
+        SM.registerListener(gyroListener, gyroscope, SensorManager.SENSOR_DELAY_GAME, handler);
+        SM.registerListener(accListener, accelerometer, SensorManager.SENSOR_DELAY_GAME,handler);
+
+        //Update status and UI
+        running = true;
+        statusDisplay.setText("Running");
+
+        Log.d(TAG,"Started Tracking");
 
     }
 
+    @Override
+    public void onCalibrationProgress(int value) {
+        statusDisplay.setText("Calibration..." + value);
+    }
 }
 
 //TODO: forse si puo passare il riferimento ad oggetto PuntoD da mainActivity ad AccListener e non serve richiamare updateUI, verificare...
