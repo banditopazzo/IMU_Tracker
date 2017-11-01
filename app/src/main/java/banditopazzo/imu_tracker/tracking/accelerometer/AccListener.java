@@ -13,7 +13,7 @@ import java.util.Date;
 
 public class AccListener implements SensorEventListener, AccelerationManager{
 
-    private final float SOGLIA = 0.25f;
+    private final float SOGLIA = 0.30f;
 
     //Links to Entities
     private UpgradableSurface surface;

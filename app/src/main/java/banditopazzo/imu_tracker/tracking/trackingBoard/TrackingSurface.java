@@ -1,12 +1,11 @@
 package banditopazzo.imu_tracker.tracking.trackingBoard;
 
 import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
+import android.graphics.*;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import banditopazzo.imu_tracker.R;
 import banditopazzo.imu_tracker.tracking.accelerometer.UpgradableSurface;
 import banditopazzo.imu_tracker.tracking.models.PointD;
 
@@ -22,12 +21,23 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface {
     private PointD lastPosition;
     private PointD center;
 
+    private Bitmap redArrow;
+
     //Constructor
     public TrackingSurface(Context context) {
         super(context);
 
         //Set up holder
         this.holder = getHolder();
+
+        //Set up redArrow
+        Bitmap original = BitmapFactory.decodeResource(getResources(), R.drawable.redarrow);
+        double bitmapScaleFactor = 0.02;
+        redArrow = Bitmap.createScaledBitmap(
+                original,
+                (int) (original.getWidth()  * bitmapScaleFactor),
+                (int) (original.getHeight() * bitmapScaleFactor),
+                true);
 
         Log.d(TAG, "Surface created");
     }
@@ -85,10 +95,26 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface {
             p.setColor(Color.YELLOW);
             c.drawPoint((float) center.getX(), (float) center.getY(), p);
 
-            //Punto posizione
-            //TODO: disegnare la freccia e usare theta
-            p.setColor(Color.RED);
-            c.drawPoint((float) newX, (float) newY, p);
+            //Punto posizione - Freccia rossa
+            //Rotazione
+            Matrix matrix = new Matrix();
+            matrix.postRotate((float)Math.toDegrees(theta));
+            Bitmap rotatedRedArrow = Bitmap.createBitmap(
+                    redArrow,
+                    0,
+                    0,
+                    redArrow.getWidth(),
+                    redArrow.getHeight(),
+                    matrix,
+                    true
+            );
+            //Disegno
+            c.drawBitmap(
+                    rotatedRedArrow,
+                    (float) newX - (redArrow.getWidth()/2),
+                    (float) newY- (redArrow.getHeight()/2),
+                    null
+            );
 
             /*
             //Draw line
