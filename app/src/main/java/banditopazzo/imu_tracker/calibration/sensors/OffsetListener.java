@@ -5,7 +5,6 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import banditopazzo.imu_tracker.calibration.sensors.models.OffsetList3D;
 
-import java.util.Iterator;
 import java.util.List;
 
 public class OffsetListener implements SensorEventListener {
@@ -41,9 +40,8 @@ public class OffsetListener implements SensorEventListener {
 
     private float getAverageFromFloatList(List<Float> list) {
         float sum=0;
-        Iterator<Float> iterator = list.iterator();
-        while (iterator.hasNext()){
-            sum = sum + iterator.next();
+        for (float item : list) {
+            sum = sum + item;
         }
         return sum/list.size();
     }
