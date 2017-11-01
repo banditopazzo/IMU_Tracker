@@ -1,4 +1,4 @@
-package banditopazzo.imu_tracker.calibration.models;
+package banditopazzo.imu_tracker.calibration.sensors.models;
 
 import java.util.LinkedList;
 import java.util.List;

@@ -32,26 +32,30 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface {
         Log.d(TAG, "Surface created");
     }
 
-    private void setStartingPoint(){
+    //Set up center
+    private void setCenter(){
         Canvas c = holder.lockCanvas();
 
         //Set initial position
         int x = c.getWidth()/2;
         int y = c.getHeight()/2;
         center = new PointD(x,y);
-        lastPosition = new PointD(x,y);
 
         holder.unlockCanvasAndPost(c);
     }
 
     //Dato un nuovo punto costruisce una retta dal punto precendente al nuovo punto se questi sono diversi
     @Override
-    public void updateSurface(PointD newP) {
+    public void updateSurface(PointD newP, double theta) {
         if (holder.getSurface().isValid()) {
 
-            //Calculate the center if the first time
+            //Calculate the center the first time
+            if (center == null)
+                setCenter();
+
+            //Set initial position to the center se è sconosciuta
             if (lastPosition == null)
-                setStartingPoint();
+                lastPosition = new PointD(center.getX(),center.getY());
 
             //Scala i valori
             final float SCALA = 3000.0f;
@@ -82,9 +86,9 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface {
             c.drawPoint((float) center.getX(), (float) center.getY(), p);
 
             //Punto posizione
+            //TODO: disegnare la freccia e usare theta
             p.setColor(Color.RED);
             c.drawPoint((float) newX, (float) newY, p);
-
 
             /*
             //Draw line
@@ -109,6 +113,20 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface {
             lastPosition.setX(newX);
             lastPosition.setY(newY);
         }
+    }
+
+    public void resetPosition() {
+
+        //Delete the stored position
+        lastPosition = null;
+
+        Canvas c = holder.lockCanvas();
+
+        //Delete the position from screen
+        c.drawColor(Color.BLACK);
+
+        holder.unlockCanvasAndPost(c);
+
     }
 
 }

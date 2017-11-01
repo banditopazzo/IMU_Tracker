@@ -5,6 +5,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.util.Log;
 
+import banditopazzo.imu_tracker.tracking.accelerometer.models.GoldFishMemory;
 import banditopazzo.imu_tracker.tracking.gyroscope.AccelerationManager;
 import banditopazzo.imu_tracker.tracking.models.PointD;
 
@@ -13,9 +14,6 @@ import java.util.Date;
 public class AccListener implements SensorEventListener, AccelerationManager{
 
     private final float SOGLIA = 0.25f;
-
-    //Last Forces
-    private volatile float[] forces;
 
     //Links to Entities
     private UpgradableSurface surface;
@@ -38,6 +36,12 @@ public class AccListener implements SensorEventListener, AccelerationManager{
     //Acceleration
     private double ax;
     private double ay;
+
+    //Last N-Acceleration Values
+    private GoldFishMemory<float[]> lastAccelerationValues;
+
+    //Raw Acceleration Values
+    private volatile float[] rawAcceleration;
 
     //offsets
     private float[] offsets;
@@ -65,6 +69,12 @@ public class AccListener implements SensorEventListener, AccelerationManager{
         //Set offsets to ZERO
         offsets = new float[]{0,0,0};
 
+        //Set up the acceleration memory
+        lastAccelerationValues = new GoldFishMemory<>(10);
+
+        //Set up raw acceleration values
+        rawAcceleration = new float[]{0,0,0};
+
         Log.d(TAG, "Accelerometer Listener created");
 
     }
@@ -84,9 +94,15 @@ public class AccListener implements SensorEventListener, AccelerationManager{
         //read acceleration
         double current_ax = event.values[0] - offsets[0];
         double current_ay = -event.values[1] - offsets[1];
+        double current_az = event.values[2] - offsets[2];
 
-        //update forces
-        forces = event.values;
+        //update raw acceleration
+        //TODO: Valori comprensivi solo di offsets
+        rawAcceleration = new float[]{
+                (float) current_ax,
+                (float) current_ay,
+                (float) current_az
+        };
 
         //process acceleration with data from gyroscope
         double theta = rm.getTheta();
@@ -120,8 +136,15 @@ public class AccListener implements SensorEventListener, AccelerationManager{
         yt = 1 / 2 * ay * Math.pow(dt, 2) + vyt * dt + yt;
         vyt = ay * dt + vyt;
 
+        //update acceleration memory
+        lastAccelerationValues.remember(new float[]{
+                (float) current_ax,
+                (float) current_ay,
+                (float) current_az
+        });
+
         //Update Surface
-        surface.updateSurface(new PointD(xt,yt));
+        surface.updateSurface(new PointD(xt,yt), theta);
 
     }
 
@@ -131,7 +154,7 @@ public class AccListener implements SensorEventListener, AccelerationManager{
     }
 
     public float[] getForces() {
-        return forces;
+        return rawAcceleration;
     }
 }
 

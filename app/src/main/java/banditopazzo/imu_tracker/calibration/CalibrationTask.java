@@ -67,6 +67,6 @@ public class CalibrationTask extends AsyncTask<CalibrationParams, Integer, Offse
 
     @Override
     protected void onPostExecute(OffsetsResults results) {
-        this.CH.onCalibration(results);
+        CH.onCalibration(results);
     }
 }

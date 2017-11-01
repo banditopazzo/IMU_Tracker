@@ -3,7 +3,7 @@ package banditopazzo.imu_tracker.calibration.sensors;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
-import banditopazzo.imu_tracker.calibration.models.OffsetList3D;
+import banditopazzo.imu_tracker.calibration.sensors.models.OffsetList3D;
 
 import java.util.Iterator;
 import java.util.List;

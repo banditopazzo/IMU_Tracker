@@ -65,6 +65,7 @@ public class GyroListener implements RotationManager, SensorEventListener {
         theta = theta + dt * gz;
 
         //Complementary filter
+        //TODO: switch ON/OFF complementary filter
         boolean attivo = false;
         //Esegui il complementary filter solo se è presente un AccelerationManager
         if (am != null && attivo) {

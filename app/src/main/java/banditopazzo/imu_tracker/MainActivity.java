@@ -97,7 +97,8 @@ public class MainActivity extends AppCompatActivity implements CalibrationHandle
             gyroListener=null;
             accListener=null;
 
-            //TODO: cancella il percorso
+            //Cancella il percorso
+            trackingSurface.resetPosition();
 
             //Update status and UI
             running = false;
