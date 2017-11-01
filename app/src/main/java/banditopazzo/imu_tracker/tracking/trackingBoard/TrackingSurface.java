@@ -98,7 +98,7 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface {
             //Punto posizione - Freccia rossa
             //Rotazione
             Matrix matrix = new Matrix();
-            matrix.postRotate( -(float)Math.toDegrees(theta) );
+            matrix.postRotate( (float) Math.toDegrees(theta) );
             Bitmap rotatedRedArrow = Bitmap.createBitmap(
                     redArrow,
                     0,

@@ -99,6 +99,6 @@ public class GyroListener implements RotationManager, SensorEventListener {
 
     @Override
     public double getTheta() {
-        return theta;
+        return -theta;
     }
 }

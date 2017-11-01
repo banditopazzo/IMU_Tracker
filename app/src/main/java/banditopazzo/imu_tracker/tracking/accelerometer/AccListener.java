@@ -97,7 +97,7 @@ public class AccListener implements SensorEventListener, AccelerationManager{
         double current_az = event.values[2] - offsets[2];
 
         //update raw acceleration
-        //TODO: Valori comprensivi solo di offsets
+        //TODO: Valori comprensivi solo di offsets??
         rawAcceleration = new float[]{
                 (float) current_ax,
                 (float) current_ay,
@@ -106,27 +106,27 @@ public class AccListener implements SensorEventListener, AccelerationManager{
 
         //process acceleration with data from gyroscope
         double theta = rm.getTheta();
-        current_ax = Math.cos(theta)*current_ax - Math.sin(theta)*current_ay;
-        current_ay = Math.sin(theta)*current_ax + Math.cos(theta)*current_ay;
         Log.d(TAG, "Theta: " + theta);
+        double rotated_ax = Math.cos(theta)*current_ax - Math.sin(theta)*current_ay;
+        double rotated_ay = Math.sin(theta)*current_ax + Math.cos(theta)*current_ay;
 
         //Se non viene superata la soglia, considera nulla l'accelerazione e la velocità
-        if (Math.abs(current_ax)<SOGLIA) {
-            current_ax=0;
+        if (Math.abs(rotated_ax)<SOGLIA) {
+            rotated_ax=0;
             vxt=0;
         }
-        if (Math.abs(current_ay)<SOGLIA){
-            current_ay=0;
+        if (Math.abs(rotated_ay)<SOGLIA){
+            rotated_ay=0;
             vyt=0;
         }
 
         //Filtro base
-        ax = 0.9 * ax + 0.1 * (current_ax);
-        ay = 0.9 * ay + 0.1 * (current_ay);
+        ax = 0.9 * ax + 0.1 * (rotated_ax);
+        ay = 0.9 * ay + 0.1 * (rotated_ay);
 
         //Log processed acceleration
-        Log.d(TAG, "AX " + ax);
-        Log.d(TAG, "AY " + ay);
+        Log.d(TAG, "processed AX " + ax);
+        Log.d(TAG, "processed AY " + ay);
 
         //update x position and velocity
         xt = 1 / 2 * ax * Math.pow(dt, 2) + vxt * dt + xt;
@@ -137,6 +137,7 @@ public class AccListener implements SensorEventListener, AccelerationManager{
         vyt = ay * dt + vyt;
 
         //update acceleration memory
+        //TODO: deve ricordare quelli rotati??
         lastAccelerationValues.remember(new float[]{
                 (float) current_ax,
                 (float) current_ay,
@@ -144,7 +145,7 @@ public class AccListener implements SensorEventListener, AccelerationManager{
         });
 
         //Update Surface
-        surface.updateSurface(new PointD(xt,yt), theta);
+        surface.updateSurface(new PointD(xt,yt), rm.getTheta());
 
     }
 
