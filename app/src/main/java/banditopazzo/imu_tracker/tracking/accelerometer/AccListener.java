@@ -13,10 +13,10 @@ import java.util.Date;
 
 public class AccListener implements SensorEventListener, AccelerationManager{
 
-    private final float SOGLIA = 0.30f;
+    private float[] soglia;
 
     //Links to Entities
-    private UpgradableSurface surface;
+    private UpgradableSurface[] surfaces;
     private RotationManager rm;
 
     //Logging
@@ -47,13 +47,13 @@ public class AccListener implements SensorEventListener, AccelerationManager{
     private float[] offsets;
 
     //Constructor
-    public AccListener(UpgradableSurface surface, RotationManager rm) {
+    public AccListener(UpgradableSurface[] surfaces, RotationManager rm) {
 
         //Set the start time
         this.t = new Date().getTime();
 
         //Set links to entities
-        this.surface = surface;
+        this.surfaces = surfaces;
         this.rm = rm;
 
         //Set velocity and position to ZERO
@@ -75,6 +75,10 @@ public class AccListener implements SensorEventListener, AccelerationManager{
         //Set up raw acceleration values
         rawAcceleration = new float[]{0,0,0};
 
+        //Set soglia
+        final float DEFAULT_SOGLIA = 0.20f;
+        soglia = new float[]{DEFAULT_SOGLIA,DEFAULT_SOGLIA,DEFAULT_SOGLIA};
+
         Log.d(TAG, "Accelerometer Listener created");
 
     }
@@ -83,9 +87,14 @@ public class AccListener implements SensorEventListener, AccelerationManager{
         this.offsets = offsets;
     }
 
+    public void setSoglia(float[] soglia) {
+        this.soglia = soglia;
+    }
+
     @Override
     public void onSensorChanged(SensorEvent event) {
 
+        //TODO: Usare timestamp
         //calculate dt and update datetime
         long now = (new Date()).getTime();
         double dt = (now - t) / 1000.000; // conversion to seconds and automatic conversion to double
@@ -94,7 +103,7 @@ public class AccListener implements SensorEventListener, AccelerationManager{
         //read acceleration
         double current_ax = event.values[0] - offsets[0];
         double current_ay = -event.values[1] - offsets[1];
-        double current_az = event.values[2] - offsets[2];
+        double current_az = event.values[2] - offsets[2]; //problema offset z non catturato perchè catturato solo insieme alla gravità
 
         //update raw acceleration
         //TODO: Valori comprensivi solo di offsets??
@@ -111,11 +120,11 @@ public class AccListener implements SensorEventListener, AccelerationManager{
         double rotated_ay = Math.sin(theta)*current_ax + Math.cos(theta)*current_ay;
 
         //Se non viene superata la soglia, considera nulla l'accelerazione e la velocità
-        if (Math.abs(rotated_ax)<SOGLIA) {
+        if (Math.abs(rotated_ax)<soglia[0]) {
             rotated_ax=0;
             vxt=0;
         }
-        if (Math.abs(rotated_ay)<SOGLIA){
+        if (Math.abs(rotated_ay)<soglia[1]){
             rotated_ay=0;
             vyt=0;
         }
@@ -137,15 +146,16 @@ public class AccListener implements SensorEventListener, AccelerationManager{
         vyt = ay * dt + vyt;
 
         //update acceleration memory
-        //TODO: deve ricordare quelli rotati??
+        //TODO: deve ricordare quelli rotati?? forse si...
         lastAccelerationValues.remember(new float[]{
-                (float) current_ax,
-                (float) current_ay,
-                (float) current_az
+                (float) rotated_ax,
+                (float) rotated_ay
         });
 
         //Update Surface
-        surface.updateSurface(new PointD(xt,yt), rm.getTheta());
+        surfaces[0].updateSurface(new PointD(xt,yt), rm.getTheta());
+        //surfaces[1].updateSurface(new PointD(xt,zt), rm.getPhi());
+        //surfaces[2].updateSurface(new PointD(yt,zt), rm.getPsy());
 
     }
 

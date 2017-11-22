@@ -38,6 +38,18 @@ public class OffsetListener implements SensorEventListener {
         return new float[]{x,y,z};
     }
 
+    public float[] getMaxResults() {
+
+        float x = getMaxFromFloatList(results.getX_list());
+
+        float y = getMaxFromFloatList(results.getY_list());
+
+        float z = getMaxFromFloatList(results.getZ_list());
+
+        return new float[]{x,y,z};
+
+    }
+
     private float getAverageFromFloatList(List<Float> list) {
         float sum=0;
         for (float item : list) {
@@ -45,4 +57,14 @@ public class OffsetListener implements SensorEventListener {
         }
         return sum/list.size();
     }
+
+    private float getMaxFromFloatList(List<Float> list) {
+        float max=0;
+        for (float item : list) {
+            if (Math.abs(item) > max)
+                max = Math.abs(item);
+        }
+        return max;
+    }
+
 }

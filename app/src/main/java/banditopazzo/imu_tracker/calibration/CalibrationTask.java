@@ -55,7 +55,10 @@ public class CalibrationTask extends AsyncTask<CalibrationParams, Integer, Offse
         float[] accOffsets = accOffsetListener.getFinalResults();
         float[] gyroOffsets = gyroOffsetListener.getFinalResults();
 
-        return new OffsetsResults(accOffsets,gyroOffsets);
+        float[] accSoglia = accOffsetListener.getMaxResults();
+        float[] gyroSoglia = accOffsetListener.getMaxResults();
+
+        return new OffsetsResults(accOffsets, gyroOffsets, accSoglia, gyroSoglia);
 
     }
 

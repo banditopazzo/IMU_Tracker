@@ -30,7 +30,12 @@ public class MainActivity extends AppCompatActivity implements CalibrationHandle
 
     //Views
     private TextView statusDisplay;
-    private TrackingSurface trackingSurface;
+    /*
+    0 - x,y
+    1 - x,z
+    2 - y,z
+     */
+    private TrackingSurface[] trackingSurfaces;
 
     //Sensors
     private SensorManager SM;
@@ -55,10 +60,13 @@ public class MainActivity extends AppCompatActivity implements CalibrationHandle
         //Get status view
         statusDisplay = (TextView) findViewById(R.id.statusDisplay);
 
-        //Set TrackingSurface View
-        trackingSurface = new TrackingSurface(this);
-        LinearLayout ln = (LinearLayout) findViewById(R.id.container);
-        ln.addView(trackingSurface);
+        //Set TrackingSurface Views Array
+        trackingSurfaces = new TrackingSurface[3];
+        for (int i=0; i<3; i++){
+            trackingSurfaces[i] = new TrackingSurface(this);
+            LinearLayout ln = (LinearLayout) findViewById(R.id.container);
+            ln.addView(trackingSurfaces[i]);
+        }
 
         //Create sensor manager
         SM = (SensorManager) getSystemService(SENSOR_SERVICE);
@@ -98,7 +106,9 @@ public class MainActivity extends AppCompatActivity implements CalibrationHandle
             accListener=null;
 
             //Cancella il percorso
-            trackingSurface.resetPosition();
+            for (TrackingSurface t: trackingSurfaces) {
+                t.resetPosition();
+            }
 
             //Update status and UI
             running = false;
@@ -156,8 +166,9 @@ public class MainActivity extends AppCompatActivity implements CalibrationHandle
         //Set up listeners
         gyroListener = new GyroListener();
         gyroListener.setOffsets(gyroOffsets);
-        accListener = new AccListener(trackingSurface, gyroListener);
+        accListener = new AccListener(trackingSurfaces, gyroListener);
         accListener.setOffsets(accOffsets);
+
         gyroListener.setAccelerationManager(accListener);
 
         //Start listeners
