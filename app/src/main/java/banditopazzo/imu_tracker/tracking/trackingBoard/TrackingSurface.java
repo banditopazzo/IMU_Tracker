@@ -76,10 +76,6 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface {
             newX = newX + center.getX();
             newY = newY + center.getY();
 
-            //If the position doesn't change, don't do anything
-            //if (newX == lastPosition.getX() && newY == lastPosition.getY())
-            //    return;
-
             //Get Canvas
             Canvas c = holder.lockCanvas();
 
