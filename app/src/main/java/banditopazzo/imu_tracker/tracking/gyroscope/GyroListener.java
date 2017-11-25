@@ -18,8 +18,10 @@ public class GyroListener implements RotationManager, SensorEventListener {
     //last update time
     private double t;
 
-    //theta
-    private double theta;
+    //Degress
+    private double xDegree;
+    private double yDegree;
+    private double zDegree;
 
     //offsets
     private float[] offsets;
@@ -31,7 +33,10 @@ public class GyroListener implements RotationManager, SensorEventListener {
         this.t = new Date().getTime();
 
         //Set variables to zero
-        theta=0.0f;
+        xDegree=0.0f;
+        yDegree=0.0f;
+
+        zDegree=0.0f;
         offsets = new float[]{0,0,0};
 
     }
@@ -52,17 +57,27 @@ public class GyroListener implements RotationManager, SensorEventListener {
         double dt = ((now - t))/1000.000; // cast to double and conversion to seconds
         this.t = now;
 
-        //Read gz
+        //Read values and subtract offset
+        float gx = event.values[0] - offsets[0];
+        float gy = event.values[1] - offsets[1];
         float gz = event.values[2] - offsets[2];
 
         //TODO: Test soglia: eliminare??
-        if (Math.abs(gz)<SOGLIA) {
-            return;
+        if (Math.abs(gz)>SOGLIA) {
+            xDegree = xDegree + dt * gx;
+        }
+
+        if (Math.abs(gz)>SOGLIA) {
+            yDegree = yDegree + dt * gy;
+        }
+
+        if (Math.abs(gz)>SOGLIA) {
+            zDegree = zDegree + dt * gz;
         }
 
         //TODO: synchronized su theta tutto questo blocco da qua fino alla fine
         //Metodo base
-        theta = theta + dt * gz;
+
 
         //Complementary filter
         //TODO: switch ON/OFF complementary filter
@@ -85,7 +100,7 @@ public class GyroListener implements RotationManager, SensorEventListener {
                 //TODO: non sicuro sugli indici di forces
                 double pitchAcc = Math.atan2(forces[1], forces[2]) * 180 / Math.PI;
 
-                theta = theta * 0.98 + pitchAcc * 0.02;
+                zDegree = zDegree * 0.98 + pitchAcc * 0.02;
 
             }
         }
@@ -98,7 +113,18 @@ public class GyroListener implements RotationManager, SensorEventListener {
     }
 
     @Override
-    public double getTheta() {
-        return -theta;
+    public double getX_Degree() {
+        return -xDegree;
+    }
+
+    @Override
+    public double getY_Degree() {
+        return yDegree;
+    }
+
+    @Override
+    public double getZ_Degree() {
+        return -zDegree;
     }
 }
+

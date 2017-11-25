@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
+import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 import banditopazzo.imu_tracker.calibration.CalibrationHandler;
 import banditopazzo.imu_tracker.calibration.models.CalibrationParams;
@@ -60,19 +61,33 @@ public class MainActivity extends AppCompatActivity implements CalibrationHandle
         //Get status view
         statusDisplay = (TextView) findViewById(R.id.statusDisplay);
 
-        //Set TrackingSurface Views Array
+        //Divide screen in three sections
+        LinearLayout ln = (LinearLayout) findViewById(R.id.container);
+        LayoutParams surfaceDimension = new LayoutParams(LayoutParams.MATCH_PARENT,0,0.3f);
+        LayoutParams lineDimension = new LayoutParams(LayoutParams.MATCH_PARENT, 1);
+        LinearLayout[] splitToThree = new LinearLayout[3];
+        for (int i=0; i<3; i++) {
+            splitToThree[i] = new LinearLayout(getApplicationContext());
+            splitToThree[i].setLayoutParams(surfaceDimension);
+            ln.addView(splitToThree[i]);
+            //Add line between sections
+            View v = new View(getApplicationContext());
+            v.setLayoutParams(lineDimension);
+            ln.addView(v);
+        }
+
+        //Add a tracking surface in each section
         trackingSurfaces = new TrackingSurface[3];
         for (int i=0; i<3; i++){
             trackingSurfaces[i] = new TrackingSurface(this);
-            LinearLayout ln = (LinearLayout) findViewById(R.id.container);
-            ln.addView(trackingSurfaces[i]);
+            splitToThree[i].addView(trackingSurfaces[i]);
         }
 
         //Create sensor manager
         SM = (SensorManager) getSystemService(SENSOR_SERVICE);
 
         //Get Accelerometer
-        accelerometer = SM.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        accelerometer = SM.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
         //Get Gyroscope
         gyroscope = SM.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 

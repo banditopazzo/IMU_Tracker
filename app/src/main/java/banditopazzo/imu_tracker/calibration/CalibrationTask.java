@@ -28,7 +28,7 @@ public class CalibrationTask extends AsyncTask<CalibrationParams, Integer, Offse
         Handler handler = params.getHandler();
 
         //Get Accelerometer
-        Sensor accelerometer = SM.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        Sensor accelerometer = SM.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
         //Get Gyroscope
         Sensor gyroscope = SM.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 
