@@ -1,5 +1,7 @@
 package banditopazzo.imu_tracker;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.os.Handler;
@@ -19,6 +21,9 @@ import banditopazzo.imu_tracker.calibration.models.OffsetsResults;
 import banditopazzo.imu_tracker.tracking.accelerometer.AccListener;
 import banditopazzo.imu_tracker.tracking.gyroscope.GyroListener;
 import banditopazzo.imu_tracker.tracking.trackingBoard.TrackingSurface;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class MainActivity extends AppCompatActivity implements CalibrationHandler {
@@ -82,6 +87,12 @@ public class MainActivity extends AppCompatActivity implements CalibrationHandle
             trackingSurfaces[i] = new TrackingSurface(this);
             splitToThree[i].addView(trackingSurfaces[i]);
         }
+
+        //Setup axis index
+        List<Bitmap> scaledAxisIndexList = loadScaledAxisIndex();
+        trackingSurfaces[0].setAxisIndex(scaledAxisIndexList.get(0));
+        trackingSurfaces[1].setAxisIndex(scaledAxisIndexList.get(1));
+        trackingSurfaces[2].setAxisIndex(scaledAxisIndexList.get(2));
 
         //Create sensor manager
         SM = (SensorManager) getSystemService(SENSOR_SERVICE);
@@ -201,6 +212,31 @@ public class MainActivity extends AppCompatActivity implements CalibrationHandle
     @Override
     public void onCalibrationProgress(int value) {
         statusDisplay.setText("Calibration..." + value);
+    }
+
+    private List<Bitmap> loadScaledAxisIndex() {
+        final double SCALE = 0.15;
+
+        List<Bitmap> axisIndexList = new ArrayList<>();
+        Bitmap xy = BitmapFactory.decodeResource(getResources(), R.drawable.xy);
+        axisIndexList.add(xy);
+        Bitmap xz = BitmapFactory.decodeResource(getResources(), R.drawable.xz);
+        axisIndexList.add(xz);
+        Bitmap yz = BitmapFactory.decodeResource(getResources(), R.drawable.yz);
+        axisIndexList.add(yz);
+
+        List<Bitmap> scaledAxisIndexList = new ArrayList<>();
+        for (Bitmap b: axisIndexList) {
+            Bitmap scaled_item = Bitmap.createScaledBitmap(
+                    b,
+                    (int) (b.getWidth() * SCALE),
+                    (int) (b.getHeight() * SCALE),
+                    true
+            );
+            scaledAxisIndexList.add(scaled_item);
+        }
+
+        return scaledAxisIndexList;
     }
 }
 

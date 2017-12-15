@@ -158,7 +158,7 @@ public class AccListener implements SensorEventListener, AccelerationManager{
         double rotated_ay = current_ay;
         double rotated_az = current_az;
 
-        //Se non viene superata la soglia, considera nulla l'accelerazione e la velocità
+        //Se non viene superata la soglia, considera nulla l'accelerazione e la velocità - WTF ?!?
         if (Math.abs(rotated_ax)<soglia[0]) {
             rotated_ax=0;
             vxt=0;
@@ -205,7 +205,7 @@ public class AccListener implements SensorEventListener, AccelerationManager{
         //Update Surface
         surfaces[0].updateSurface(new PointD(xt,yt), phi);
         surfaces[1].updateSurface(new PointD(xt,zt), theta);
-        surfaces[2].updateSurface(new PointD(yt,zt), psy);
+        surfaces[2].updateSurface(new PointD(-yt,zt), psy);
 
     }
 

@@ -22,6 +22,7 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface {
     private PointD center;
 
     private Bitmap redArrow;
+    private Bitmap axisIndex;
 
     //Constructor
     public TrackingSurface(Context context) {
@@ -38,8 +39,11 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface {
                 (int) (original.getWidth()  * bitmapScaleFactor),
                 (int) (original.getHeight() * bitmapScaleFactor),
                 true);
-
         Log.d(TAG, "Surface created");
+    }
+
+    public void setAxisIndex(Bitmap index) {
+        this.axisIndex = index;
     }
 
     //Set up center
@@ -167,19 +171,17 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface {
             c.drawBitmap(
                     rotatedRedArrow,
                     (float) newX - (redArrow.getWidth()/2),
-                    (float) newY- (redArrow.getHeight()/2),
+                    (float) newY - (redArrow.getHeight()/2),
                     null
             );
 
-            /*
-            //Draw line
-            c.drawLine(
-                    (float) lastPosition.getX(),
-                    (float) lastPosition.getY(),
-                    (float) newX,
-                    (float) newY,
-                    p
-            );*/
+            //Draw Axis Index
+            c.drawBitmap(
+                    axisIndex,
+                    (float) 0 - (axisIndex.getWidth()/5),
+                    (float) c.getHeight() - axisIndex.getHeight(),
+                    null
+            );
 
             //Commit changes
             holder.unlockCanvasAndPost(c);
