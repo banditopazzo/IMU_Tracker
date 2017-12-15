@@ -113,8 +113,8 @@ public class MainActivity extends AppCompatActivity implements CalibrationHandle
         } else {
 
             //Stop Listeners
+            SM.unregisterListener(accListener); //stoppare prima acc
             SM.unregisterListener(gyroListener);
-            SM.unregisterListener(accListener);
 
             //Delete Listeners
             gyroListener=null;
@@ -138,8 +138,8 @@ public class MainActivity extends AppCompatActivity implements CalibrationHandle
     protected void onPause() {
         super.onPause();
         //TODO: controllare il funzionamento
+        SM.unregisterListener(accListener); //stoppare prima acc
         SM.unregisterListener(gyroListener);
-        SM.unregisterListener(accListener);
     }
 
     @Override

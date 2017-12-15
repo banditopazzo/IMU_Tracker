@@ -63,11 +63,11 @@ public class GyroListener implements RotationManager, SensorEventListener {
         float gz = event.values[2] - offsets[2];
 
         //TODO: Test soglia: eliminare??
-        if (Math.abs(gz)>SOGLIA) {
+        if (Math.abs(gx)>SOGLIA) {
             xDegree = xDegree + dt * gx;
         }
 
-        if (Math.abs(gz)>SOGLIA) {
+        if (Math.abs(gy)>SOGLIA) {
             yDegree = yDegree + dt * gy;
         }
 
@@ -114,7 +114,7 @@ public class GyroListener implements RotationManager, SensorEventListener {
 
     @Override
     public double getX_Degree() {
-        return -xDegree;
+        return xDegree;
     }
 
     @Override
@@ -124,7 +124,7 @@ public class GyroListener implements RotationManager, SensorEventListener {
 
     @Override
     public double getZ_Degree() {
-        return -zDegree;
+        return zDegree;
     }
 }
 

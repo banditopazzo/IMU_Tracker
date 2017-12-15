@@ -85,7 +85,7 @@ public class AccListener implements SensorEventListener, AccelerationManager{
         rawAcceleration = new float[]{0,0,0};
 
         //Set soglia
-        final float DEFAULT_SOGLIA = 0.30f;
+        final float DEFAULT_SOGLIA = 0.40f;
         soglia = new float[]{DEFAULT_SOGLIA,DEFAULT_SOGLIA,DEFAULT_SOGLIA};
 
         Log.d(TAG, "Accelerometer Listener created");
@@ -111,27 +111,52 @@ public class AccListener implements SensorEventListener, AccelerationManager{
 
         //read acceleration
         double current_ax = event.values[0] - offsets[0];
-        double current_ay = -event.values[1] - offsets[1];
+        double current_ay = -(event.values[1] - offsets[1]); //negativo perchè la Y viene disegnata al contrario sullo schermo
         double current_az = event.values[2] - offsets[2];
 
-        //update raw acceleration
-        //TODO: Valori comprensivi solo di offsets??
+        //update raw acceleration -- per complementary filter
+        //TODO: Valori compresi di offsets??
         rawAcceleration = new float[]{
                 (float) current_ax,
                 (float) current_ay,
                 (float) current_az
         };
 
-        //process acceleration with data from gyroscope
-        double theta = rm.getX_Degree();
-        double psy = rm.getY_Degree();
-        double phi = rm.getZ_Degree();
-        Log.d(TAG, "Psy: " + psy);
-        Log.d(TAG, "Theta: " + theta);
-        Log.d(TAG, "Phi: " + phi);
-        double rotated_ax = ( cos(psy) * cos(phi) - sin(psy) * cos(theta) * sin(phi) ) * current_ax + ( -sin(phi) * cos(psy) - sin(psy) * cos(theta) * sin(phi) ) * current_ay + (sin(psy) * sin(theta)) * current_az;
-        double rotated_ay = ( sin(psy) * cos(phi) + cos(psy) * cos(theta) * sin(phi) ) * current_ax + ( -sin(psy) * sin(phi) + cos(psy) * cos(theta) * cos(phi) ) * current_ay + (-sin(theta * cos(psy))) * current_az;
-        double rotated_az = ( sin(theta) * sin(phi) ) * current_ax + ( sin(theta) * cos(phi) ) * current_ay + cos(theta) * current_az;
+        //get rotation data from gyroscope
+        double psy = -rm.getX_Degree();
+        double theta = rm.getY_Degree();
+        double phi = -rm.getZ_Degree();
+        //Log.d(TAG, "Psy: " + psy);
+        //Log.d(TAG, "Theta: " + theta);
+        //Log.d(TAG, "Phi: " + phi);
+
+        //process acceleration with rotation data
+        //===================START ROTATION===============
+        //Rotate Z
+        double new_ax = (( current_ax * Math.cos(phi)) - (current_ay * Math.sin(phi)));
+        current_ay = (( current_ax * Math.sin(phi)) + (current_ay * Math.cos(phi)));
+        //Ignore Z ###############################################
+
+        current_ax = new_ax;
+
+        //Rotate Y
+        new_ax = (( current_ax * Math.cos(theta)) + (current_az * Math.sin(theta)));
+        //Ignore Y ###############################################
+        current_az = (( current_ax * -Math.sin(theta)) + (current_az * Math.cos(theta)));
+
+        current_ax = new_ax;
+
+        //Rotate X
+        //Ignore X ###############################################
+        double new_ay = (( current_ay * Math.cos(psy)) - (current_az * Math.sin(psy)));
+        current_az = (( current_ay * Math.sin(psy)) + (current_az * Math.cos(psy)));
+
+        current_ay = new_ay;
+        //====================END ROTATION================
+
+        double rotated_ax = current_ax;
+        double rotated_ay = current_ay;
+        double rotated_az = current_az;
 
         //Se non viene superata la soglia, considera nulla l'accelerazione e la velocità
         if (Math.abs(rotated_ax)<soglia[0]) {
@@ -148,14 +173,14 @@ public class AccListener implements SensorEventListener, AccelerationManager{
         }
 
         //Filtro base
-        ax = 0.92 * ax + 0.8 * (rotated_ax);
-        ay = 0.92 * ay + 0.8 * (rotated_ay);
-        az = 0.92 * az + 0.8 * (rotated_az);
+        ax = 0.98 * ax + 0.2 * (rotated_ax);
+        ay = 0.98 * ay + 0.2 * (rotated_ay);
+        az = 0.98 * az + 0.2 * (rotated_az);
 
         //Log processed acceleration
-        Log.d(TAG, "processed AX " + ax);
-        Log.d(TAG, "processed AY " + ay);
-        Log.d(TAG, "processed AY " + az);
+        //Log.d(TAG, "processed AX " + ax);
+        //Log.d(TAG, "processed AY " + ay);
+        //Log.d(TAG, "processed AY " + az);
 
         //update x position and velocity
         xt = 1 / 2 * ax * Math.pow(dt, 2) + vxt * dt + xt;
@@ -173,13 +198,14 @@ public class AccListener implements SensorEventListener, AccelerationManager{
         //TODO: deve ricordare quelli rotati?? forse si...
         lastAccelerationValues.remember(new float[]{
                 (float) rotated_ax,
-                (float) rotated_ay
+                (float) rotated_ay,
+                (float) rotated_az
         });
 
         //Update Surface
-        surfaces[0].updateSurface(new PointD(xt,yt), rm.getZ_Degree());
-        surfaces[1].updateSurface(new PointD(xt,zt), rm.getY_Degree());
-        surfaces[2].updateSurface(new PointD(yt,zt), rm.getX_Degree());
+        surfaces[0].updateSurface(new PointD(xt,yt), phi);
+        surfaces[1].updateSurface(new PointD(xt,zt), theta);
+        surfaces[2].updateSurface(new PointD(yt,zt), psy);
 
     }
 
@@ -190,6 +216,5 @@ public class AccListener implements SensorEventListener, AccelerationManager{
 
     public float[] getForces() {
         return rawAcceleration;
-    }
+    } //usato in complementary filter nel gyrolistener
 }
-
