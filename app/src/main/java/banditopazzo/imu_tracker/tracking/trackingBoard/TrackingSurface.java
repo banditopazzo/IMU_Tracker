@@ -60,7 +60,7 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface {
 
     //Dato un nuovo punto costruisce una retta dal punto precendente al nuovo punto se questi sono diversi
     @Override
-    public void updateSurface(PointD newP, double theta) {
+    public void updateSurface(PointD newP, double angle) {
         if (holder.getSurface().isValid()) {
 
             //Calculate the center the first time
@@ -87,77 +87,28 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface {
             newX = newX + center.getX();
             newY = newY + center.getY();
 
-            //Get Canvas
-            Canvas c = holder.lockCanvas();
-
             //Set up paint
             Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
             p.setStyle(Paint.Style.STROKE);
             p.setStrokeWidth(8);
 
-            //Sfondo
+            //Get Canvas
+            Canvas c = holder.lockCanvas();
+
+            //Draw Background
             c.drawColor(Color.BLACK);
 
-            //Grid
-            Paint gridColor = new Paint();
-            gridColor.setColor(Color.BLUE);
-            //from center to right
-            double currentGridLinePos = center.getX();
-            while (currentGridLinePos < c.getWidth()) {
-                c.drawLine(
-                        (float) currentGridLinePos,
-                        0,
-                        (float) currentGridLinePos,
-                        c.getHeight(),
-                        gridColor
-                );
-                currentGridLinePos += gridStep;
-            }
-            //from center to left
-            currentGridLinePos = center.getX();
-            while (currentGridLinePos >0) {
-                c.drawLine(
-                        (float) currentGridLinePos,
-                        0,
-                        (float) currentGridLinePos,
-                        c.getHeight(),
-                        gridColor
-                );
-                currentGridLinePos -= gridStep;
-            }
-            //from center to bottom
-            currentGridLinePos = center.getY();
-            while (currentGridLinePos < c.getHeight()) {
-                c.drawLine(
-                        0,
-                        (float) currentGridLinePos,
-                        c.getWidth(),
-                        (float) currentGridLinePos,
-                        gridColor
-                );
-                currentGridLinePos += gridStep;
-            }
-            //from center to top
-            currentGridLinePos = center.getY();
-            while (currentGridLinePos > 0) {
-                c.drawLine(
-                        0,
-                        (float) currentGridLinePos,
-                        c.getWidth(),
-                        (float) currentGridLinePos,
-                        gridColor
-                );
-                currentGridLinePos -= gridStep;
-            }
+            //Draw Grid
+            drawGrid(c, gridStep);
 
-            //Centro
+            //Draw Center - Yellow Point
             p.setColor(Color.YELLOW);
             c.drawPoint((float) center.getX(), (float) center.getY(), p);
 
-            //Punto posizione - Freccia rossa
+            //Draw Tracker - Red Arrow
             //Rotazione
             Matrix matrix = new Matrix();
-            matrix.postRotate( (float) Math.toDegrees(theta) );
+            matrix.postRotate( (float) Math.toDegrees(angle) );
             Bitmap rotatedRedArrow = Bitmap.createBitmap(
                     redArrow,
                     0,
@@ -175,7 +126,7 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface {
                     null
             );
 
-            //Draw Axis Index
+            //Draw Axis Index - Bottom Left
             c.drawBitmap(
                     axisIndex,
                     (float) 0 - (axisIndex.getWidth()/5),
@@ -183,7 +134,7 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface {
                     null
             );
 
-            //Commit changes
+            //Commit changes to the Canvas
             holder.unlockCanvasAndPost(c);
 
             //Log Old and New positions
@@ -191,6 +142,7 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface {
             Log.d(TAG, "Last Y "+ lastPosition.getY());
             Log.d(TAG, "New X "+ newX);
             Log.d(TAG, "New Y "+ newY);
+            Log.d(TAG, "Angle "+ angle);
 
             //update last position
             lastPosition.setX(newX);
@@ -210,6 +162,60 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface {
 
         holder.unlockCanvasAndPost(c);
 
+    }
+
+    private void drawGrid(Canvas c, double gridStep) {
+        //Grid
+        Paint gridColor = new Paint();
+        gridColor.setColor(Color.BLUE);
+        //from center to right
+        double currentGridLinePos = center.getX();
+        while (currentGridLinePos < c.getWidth()) {
+            c.drawLine(
+                    (float) currentGridLinePos,
+                    0,
+                    (float) currentGridLinePos,
+                    c.getHeight(),
+                    gridColor
+            );
+            currentGridLinePos += gridStep;
+        }
+        //from center to left
+        currentGridLinePos = center.getX();
+        while (currentGridLinePos >0) {
+            c.drawLine(
+                    (float) currentGridLinePos,
+                    0,
+                    (float) currentGridLinePos,
+                    c.getHeight(),
+                    gridColor
+            );
+            currentGridLinePos -= gridStep;
+        }
+        //from center to bottom
+        currentGridLinePos = center.getY();
+        while (currentGridLinePos < c.getHeight()) {
+            c.drawLine(
+                    0,
+                    (float) currentGridLinePos,
+                    c.getWidth(),
+                    (float) currentGridLinePos,
+                    gridColor
+            );
+            currentGridLinePos += gridStep;
+        }
+        //from center to top
+        currentGridLinePos = center.getY();
+        while (currentGridLinePos > 0) {
+            c.drawLine(
+                    0,
+                    (float) currentGridLinePos,
+                    c.getWidth(),
+                    (float) currentGridLinePos,
+                    gridColor
+            );
+            currentGridLinePos -= gridStep;
+        }
     }
 
 }

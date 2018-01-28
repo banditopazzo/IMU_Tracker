@@ -20,6 +20,7 @@ import banditopazzo.imu_tracker.calibration.CalibrationTask;
 import banditopazzo.imu_tracker.calibration.models.OffsetsResults;
 import banditopazzo.imu_tracker.tracking.accelerometer.AccListener;
 import banditopazzo.imu_tracker.tracking.gyroscope.GyroListener;
+import banditopazzo.imu_tracker.tracking.imu_calculator.PositionFinderListener;
 import banditopazzo.imu_tracker.tracking.trackingBoard.TrackingSurface;
 
 import java.util.ArrayList;
@@ -50,6 +51,7 @@ public class MainActivity extends AppCompatActivity implements CalibrationHandle
     //Listeners
     private AccListener accListener;
     private GyroListener gyroListener;
+    private PositionFinderListener positionFinderListener;
 
     //Handler
     private HandlerThread handlerThread;
@@ -149,21 +151,23 @@ public class MainActivity extends AppCompatActivity implements CalibrationHandle
     protected void onPause() {
         super.onPause();
         //TODO: controllare il funzionamento
-        SM.unregisterListener(accListener); //stoppare prima acc
-        SM.unregisterListener(gyroListener);
+        SM.unregisterListener(positionFinderListener); //stoppare prima acc
+        SM.unregisterListener(positionFinderListener);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         //TODO: controllare il funzionamento
-        SM.registerListener(gyroListener, gyroscope, SensorManager.SENSOR_DELAY_GAME, handler);
-        SM.registerListener(accListener, accelerometer, SensorManager.SENSOR_DELAY_GAME,handler);
+        SM.registerListener(positionFinderListener, gyroscope, SensorManager.SENSOR_DELAY_GAME, handler);
+        SM.registerListener(positionFinderListener, accelerometer, SensorManager.SENSOR_DELAY_GAME,handler);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        SM.unregisterListener(positionFinderListener); //stoppare prima acc
+        SM.unregisterListener(positionFinderListener);
         //Delete handler and stop handlerThread
         handler = null;
         handlerThread.quit(); //TODO: meglio quitSafely(), modificare l'API target
@@ -197,9 +201,13 @@ public class MainActivity extends AppCompatActivity implements CalibrationHandle
 
         gyroListener.setAccelerationManager(accListener);
 
+        positionFinderListener = new PositionFinderListener(trackingSurfaces);
+        positionFinderListener.setGyroOffsets(gyroOffsets);
+        positionFinderListener.setAccOffsets(accOffsets);
+
         //Start listeners
-        SM.registerListener(gyroListener, gyroscope, SensorManager.SENSOR_DELAY_GAME, handler);
-        SM.registerListener(accListener, accelerometer, SensorManager.SENSOR_DELAY_GAME,handler);
+        SM.registerListener(positionFinderListener, gyroscope, SensorManager.SENSOR_DELAY_GAME, handler);
+        SM.registerListener(positionFinderListener, accelerometer, SensorManager.SENSOR_DELAY_GAME,handler);
 
         //Update status and UI
         running = true;
