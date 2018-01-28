@@ -3,6 +3,7 @@ package banditopazzo.imu_tracker.tracking.imu_calculator;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
+import android.util.Log;
 import banditopazzo.imu_tracker.tracking.accelerometer.UpgradableSurface;
 import banditopazzo.imu_tracker.tracking.models.PointD;
 
@@ -143,10 +144,6 @@ public class PositionFinderListener implements SensorEventListener {
                 this.degrees[i] = this.degrees[i] + dt * velocities[i];
             }
         }
-        //Correct angles
-        this.degrees[0] = -this.degrees[0];
-        this.degrees[1] = this.degrees[1];
-        this.degrees[2] = -this.degrees[2];
 
         //Update State Matrix
         updateStateMatrix(
@@ -183,9 +180,15 @@ public class PositionFinderListener implements SensorEventListener {
     }
 
     private void updateSurfaces() {
-        surfaces[0].updateSurface(new PointD(statusMatrix[2][0],statusMatrix[2][1]), degrees[0]);
-        surfaces[1].updateSurface(new PointD(statusMatrix[2][0],statusMatrix[2][2]), degrees[1]);
-        surfaces[2].updateSurface(new PointD(-statusMatrix[2][1],statusMatrix[2][2]), degrees[2]);
+        //Correct angles
+        double[] correctDeg = {
+                -this.degrees[2],
+                this.degrees[1],
+                -this.degrees[0]
+        };
+        surfaces[0].updateSurface(new PointD(statusMatrix[2][0],statusMatrix[2][1]), correctDeg[0]);
+        surfaces[1].updateSurface(new PointD(statusMatrix[2][0],statusMatrix[2][2]), correctDeg[1]);
+        surfaces[2].updateSurface(new PointD(-statusMatrix[2][1],statusMatrix[2][2]), correctDeg[2]);
     }
     
     private double[][] scale3x3MatrixByNumber(double[][] matrix, double scalar) {

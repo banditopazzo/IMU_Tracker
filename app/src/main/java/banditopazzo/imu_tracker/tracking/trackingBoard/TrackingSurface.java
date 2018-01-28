@@ -136,14 +136,14 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface {
 
             //Commit changes to the Canvas
             holder.unlockCanvasAndPost(c);
-
+/*
             //Log Old and New positions
             Log.d(TAG, "Last X "+ lastPosition.getX());
             Log.d(TAG, "Last Y "+ lastPosition.getY());
             Log.d(TAG, "New X "+ newX);
             Log.d(TAG, "New Y "+ newY);
             Log.d(TAG, "Angle "+ angle);
-
+*/
             //update last position
             lastPosition.setX(newX);
             lastPosition.setY(newY);
