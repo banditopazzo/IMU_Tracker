@@ -31,11 +31,13 @@ public class PositionFinderListener implements SensorEventListener {
     private float[] gyroOffsets;
 
     //##################### Accelerometer Variables ##################################
-    final float accSOGLIA = 0.40f;
+    final float accSOGLIA = 0.30f;
     //last update time
     private double accT;
     //offsets
     private float[] accOffsets;
+    //last accelerations
+    private float[] accelerationFiltered;
 
     //Constructor
     public PositionFinderListener(UpgradableSurface[] surfaces) {
@@ -63,6 +65,7 @@ public class PositionFinderListener implements SensorEventListener {
         this.accT = new Date().getTime();
         //Set default offsets to ZERO
         this.accOffsets = new float[]{0,0,0};
+        this.accelerationFiltered = new float[]{0,0,0};
 
     }
 
@@ -79,7 +82,7 @@ public class PositionFinderListener implements SensorEventListener {
     public void onSensorChanged(SensorEvent sensorEvent) {
         Sensor sensor = sensorEvent.sensor;
         if (sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION) {
-           // handleAccelerometer(sensorEvent);
+            handleAccelerometer(sensorEvent);
         } else if (sensor.getType() == Sensor.TYPE_GYROSCOPE) {
             handleGyroscope(sensorEvent);
         }
@@ -100,21 +103,25 @@ public class PositionFinderListener implements SensorEventListener {
 
         //read acceleration
         float[] current_acc = {
-                event.values[0] - accOffsets[0],
-                -(event.values[1] - accOffsets[1]), //negativo perchè la Y viene disegnata al contrario sullo schermo
-                event.values[2] - accOffsets[2]
+                event.values[0], - accOffsets[0],
+                event.values[1], - accOffsets[1], //negativo perchè la Y viene disegnata al contrario sullo schermo
+                event.values[2]  - accOffsets[2]
         };
 
         //Check soglia
         for (int i = 0; i < current_acc.length; i++) {
-            if (current_acc[i] < accSOGLIA) {
+            if (Math.abs(current_acc[i]) < accSOGLIA) {
                 current_acc[i] = 0;
             }
         }
 
+        for (int i = 0; i < 3; i++) {
+            accelerationFiltered[i] = 0.98f * accelerationFiltered[i] + 0.2f * current_acc[i];
+        }
+
         //Update State Matrix
         updateStateMatrix(
-                current_acc,
+                accelerationFiltered,
                 new float[]{0,0,0},
                 dt
         );
@@ -142,6 +149,8 @@ public class PositionFinderListener implements SensorEventListener {
             //TODO: Test soglia: eliminare??
             if (Math.abs(velocities[i]) > gyroSOGLIA) {
                 this.degrees[i] = this.degrees[i] + dt * velocities[i];
+            } else {
+                velocities[i] = 0;
             }
         }
 
@@ -157,7 +166,9 @@ public class PositionFinderListener implements SensorEventListener {
 
     private void updateStateMatrix(float[] accAcceleration, float[] gyroSpeed, double dt) {
 
-        //TODO:filtro
+        //TODO: filtro base
+        //TODO: addrizzare angoli - controllare le velocità delgi angoli
+        //TODO: test soglia
 
         double[][] current = this.statusMatrix;
 
@@ -172,20 +183,45 @@ public class PositionFinderListener implements SensorEventListener {
         change[1][2] = accAcceleration[2]-gyroSpeed[0]*current[1][1]+gyroSpeed[1]*current[1][0];
 
         change[2][0] = current[1][0]*cos(current[0][1])*cos(current[0][2])+current[1][1]*(sin(current[0][0])*sin(current[0][1])*cos(current[0][2])-cos(current[0][0])*sin(current[0][2]))+current[1][2]*(cos(current[0][0])*sin(current[0][1])*cos(current[0][2])+sin(current[0][0])*sin(current[0][2]));
-        change[2][1] = current[1][0]*cos(current[0][1])*sin(current[0][2])+current[1][1]*(sin(current[0][0])*sin(current[0][1])*sin(current[0][2])+cos(current[0][0])*sin(current[0][2]))+current[1][2]*(cos(current[0][0])*sin(current[0][1])*sin(current[0][2])-sin(current[0][0])*cos(current[0][2]));
+        //modificato 3rd sin current 0 2 in cos
+        change[2][1] = current[1][0]*cos(current[0][1])*sin(current[0][2])+current[1][1]*(sin(current[0][0])*sin(current[0][1])*sin(current[0][2])+cos(current[0][0])*cos(current[0][2]))+current[1][2]*(cos(current[0][0])*sin(current[0][1])*sin(current[0][2])-sin(current[0][0])*cos(current[0][2]));
         change[2][2] = -current[1][0]*sin(current[0][1])+current[1][1]*sin(current[0][0])*cos(current[0][1])+current[1][2]*cos(current[0][0])*cos(current[0][1]);
 
+        double[][] oldStatusMatrix = this.statusMatrix.clone();
         this.statusMatrix = sumTwo3x3Matrices(current,scale3x3MatrixByNumber(change, dt));
+
+        //PER DERIVA
+        for (int i = 0; i < accAcceleration.length; i++) {
+            if (Math.abs(accAcceleration[i]) < accSOGLIA) {
+                statusMatrix[1][i] = 0;
+            }
+        }
+
+        Log.d("TAG", ""
+                + " acc: " + printVector3(accAcceleration)
+                + " gyro: " + printVector3(gyroSpeed)
+                + " dt: " + dt
+                + " old status: " + print3x3Matrix(oldStatusMatrix)
+                + " change: " + print3x3Matrix(change)
+                + " new status: " + print3x3Matrix(this.statusMatrix)
+        );
 
     }
 
     private void updateSurfaces() {
         //Correct angles
-        double[] correctDeg = {
+        /*double[] correctDeg = {
                 -this.degrees[2],
                 this.degrees[1],
                 -this.degrees[0]
+        };*/
+
+        double[] correctDeg = {
+                -this.statusMatrix[0][2],
+                this.statusMatrix[0][1],
+                -this.statusMatrix[0][0]
         };
+
         surfaces[0].updateSurface(new PointD(statusMatrix[2][0],statusMatrix[2][1]), correctDeg[0]);
         surfaces[1].updateSurface(new PointD(statusMatrix[2][0],statusMatrix[2][2]), correctDeg[1]);
         surfaces[2].updateSurface(new PointD(-statusMatrix[2][1],statusMatrix[2][2]), correctDeg[2]);
@@ -217,5 +253,33 @@ public class PositionFinderListener implements SensorEventListener {
 
     private double sec(double angle) {
         return 1 / (cos(angle));
+    }
+
+    private String print3x3Matrix(double[][] matrix) {
+        String result = "";
+
+        result += " phi: "   + matrix[0][0];
+        result += " theta: " + matrix[0][1];
+        result += " psi: "   + matrix[0][2];
+
+        result += " u: " + matrix[1][0];
+        result += " v: " + matrix[1][1];
+        result += " w: " + matrix[1][2];
+
+        result += " x: " + matrix[2][0];
+        result += " y: " + matrix[2][1];
+        result += " z: " + matrix[2][2];
+
+        return  result;
+    }
+
+    private String printVector3(float[] vec) {
+        String result = "";
+
+        result += " " + vec[0];
+        result += " " + vec[1];
+        result += " " + vec[2];
+
+        return  result;
     }
 }

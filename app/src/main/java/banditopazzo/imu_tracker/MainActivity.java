@@ -206,8 +206,8 @@ public class MainActivity extends AppCompatActivity implements CalibrationHandle
         positionFinderListener.setAccOffsets(accOffsets);
 
         //Start listeners
-        SM.registerListener(positionFinderListener, gyroscope, SensorManager.SENSOR_DELAY_GAME, handler);
-        SM.registerListener(positionFinderListener, accelerometer, SensorManager.SENSOR_DELAY_GAME,handler);
+        SM.registerListener(positionFinderListener, gyroscope, SensorManager.SENSOR_DELAY_NORMAL, handler);
+        SM.registerListener(positionFinderListener, accelerometer, SensorManager.SENSOR_DELAY_NORMAL,handler);
 
         //Update status and UI
         running = true;
