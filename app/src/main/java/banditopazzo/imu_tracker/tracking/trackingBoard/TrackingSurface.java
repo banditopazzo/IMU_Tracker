@@ -21,6 +21,8 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface {
     private PointD lastPosition;
     private PointD center;
 
+    //Bitmaps
+    private Bitmap staticBitmap;
     private Bitmap redArrow;
     private Bitmap axisIndex;
 
@@ -95,15 +97,10 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface {
             //Get Canvas
             Canvas c = holder.lockCanvas();
 
-            //Draw Background
-            c.drawColor(Color.BLACK);
-
-            //Draw Grid
-            drawGrid(c, gridStep);
-
-            //Draw Center - Yellow Point
-            p.setColor(Color.YELLOW);
-            c.drawPoint((float) center.getX(), (float) center.getY(), p);
+            if (staticBitmap == null) {
+                staticBitmap = createStaticBitmap(c, Color.BLACK, gridStep);
+            }
+            c.drawBitmap(staticBitmap, 0, 0, new Paint());
 
             //Draw Tracker - Red Arrow
             //Rotazione
@@ -216,6 +213,26 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface {
             );
             currentGridLinePos -= gridStep;
         }
+    }
+
+    private Bitmap createStaticBitmap(Canvas c, int color, double gridStep) {
+        Bitmap bitmap = Bitmap.createBitmap(c.getWidth(), c.getHeight(), Bitmap.Config.ARGB_8888);
+        Canvas localCanvas = new Canvas(bitmap);
+
+        //Draw Background
+        localCanvas.drawColor(color);
+        //Draw Grid
+        drawGrid(localCanvas, gridStep);
+        //Draw Center - Yellow Point
+        //Set up paint
+        Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
+        p.setStyle(Paint.Style.STROKE);
+        p.setStrokeWidth(8);
+        p.setColor(Color.YELLOW);
+        localCanvas.drawPoint((float) center.getX(), (float) center.getY(), p);
+
+        return bitmap;
+
     }
 
 }

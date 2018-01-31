@@ -22,7 +22,7 @@ public class PositionFinderListener implements SensorEventListener {
     private UpgradableSurface[] surfaces;
 
     //##################### Gyroscope Variables ######################################
-    final float gyroSOGLIA = 0.02f;
+    private final float gyroSOGLIA = 0.02f;
     //last update time
     private double gyroT;
     //degrees array
@@ -31,7 +31,7 @@ public class PositionFinderListener implements SensorEventListener {
     private float[] gyroOffsets;
 
     //##################### Accelerometer Variables ##################################
-    final float accSOGLIA = 0.30f;
+    private final float accSOGLIA = 0.30f;
     //last update time
     private double accT;
     //offsets
@@ -103,9 +103,9 @@ public class PositionFinderListener implements SensorEventListener {
 
         //read acceleration
         float[] current_acc = {
-                event.values[0], - accOffsets[0],
-                event.values[1], - accOffsets[1], //negativo perchè la Y viene disegnata al contrario sullo schermo
-                event.values[2]  - accOffsets[2]
+                event.values[0] - accOffsets[0],
+                event.values[1] - accOffsets[1],
+                event.values[2] - accOffsets[2]
         };
 
         //Check soglia
@@ -190,6 +190,7 @@ public class PositionFinderListener implements SensorEventListener {
         double[][] oldStatusMatrix = this.statusMatrix.clone();
         this.statusMatrix = sumTwo3x3Matrices(current,scale3x3MatrixByNumber(change, dt));
 
+        //TODO: errore: deve essere sulle componenti rotate perchè se si ruota sovrapponendo cambiando gli assi non funziona
         //PER DERIVA
         for (int i = 0; i < accAcceleration.length; i++) {
             if (Math.abs(accAcceleration[i]) < accSOGLIA) {
@@ -222,9 +223,10 @@ public class PositionFinderListener implements SensorEventListener {
                 -this.statusMatrix[0][0]
         };
 
-        surfaces[0].updateSurface(new PointD(statusMatrix[2][0],statusMatrix[2][1]), correctDeg[0]);
+        //Y negativo perchè la Y viene disegnata al contrario sullo schermo
+        surfaces[0].updateSurface(new PointD(statusMatrix[2][0],-statusMatrix[2][1]), correctDeg[0]);
         surfaces[1].updateSurface(new PointD(statusMatrix[2][0],statusMatrix[2][2]), correctDeg[1]);
-        surfaces[2].updateSurface(new PointD(-statusMatrix[2][1],statusMatrix[2][2]), correctDeg[2]);
+        surfaces[2].updateSurface(new PointD(statusMatrix[2][1],statusMatrix[2][2]), correctDeg[2]);
     }
     
     private double[][] scale3x3MatrixByNumber(double[][] matrix, double scalar) {
