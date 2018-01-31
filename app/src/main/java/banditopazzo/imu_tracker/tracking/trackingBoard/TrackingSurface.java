@@ -69,16 +69,15 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface {
             if (center == null)
                 setCenter();
 
-            //Set initial position to the center se è sconosciuta
+            //Set initial position to the center if it's unknown
             if (lastPosition == null)
                 lastPosition = new PointD(center.getX(),center.getY());
 
-            //Fattore di scala
+            //Scale factor
             final float SCALA = 1000.0f;
 
-            //Step della griglia
-            double gridStep = 0.1; //ogni 10 cm
-            //Scala griglia
+            //Set up gridStep and scale it
+            double gridStep = 0.1; //every 10 cm
             gridStep = gridStep * SCALA;
 
             //Scala i valori del punto
@@ -89,39 +88,17 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface {
             newX = newX + center.getX();
             newY = newY + center.getY();
 
-            //Set up paint
-            Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
-            p.setStyle(Paint.Style.STROKE);
-            p.setStrokeWidth(8);
-
             //Get Canvas
             Canvas c = holder.lockCanvas();
 
+            //Draw background and grid
             if (staticBitmap == null) {
                 staticBitmap = createStaticBitmap(c, Color.BLACK, gridStep);
             }
             c.drawBitmap(staticBitmap, 0, 0, new Paint());
 
             //Draw Tracker - Red Arrow
-            //Rotazione
-            Matrix matrix = new Matrix();
-            matrix.postRotate( (float) Math.toDegrees(angle) );
-            Bitmap rotatedRedArrow = Bitmap.createBitmap(
-                    redArrow,
-                    0,
-                    0,
-                    redArrow.getWidth(),
-                    redArrow.getHeight(),
-                    matrix,
-                    true
-            );
-            //Disegno
-            c.drawBitmap(
-                    rotatedRedArrow,
-                    (float) newX - (redArrow.getWidth()/2),
-                    (float) newY - (redArrow.getHeight()/2),
-                    null
-            );
+            drawTracker(c, newX, newY, angle);
 
             //Draw Axis Index - Bottom Left
             c.drawBitmap(
@@ -221,18 +198,47 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface {
 
         //Draw Background
         localCanvas.drawColor(color);
+
         //Draw Grid
         drawGrid(localCanvas, gridStep);
+
         //Draw Center - Yellow Point
         //Set up paint
         Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
         p.setStyle(Paint.Style.STROKE);
         p.setStrokeWidth(8);
         p.setColor(Color.YELLOW);
+        //Draw
         localCanvas.drawPoint((float) center.getX(), (float) center.getY(), p);
 
         return bitmap;
 
+    }
+
+    private void drawTracker(Canvas c, double newX, double newY, double angle) {
+        //Set up paint
+        Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
+        p.setStyle(Paint.Style.STROKE);
+        p.setStrokeWidth(8);
+        //Rotazione
+        Matrix matrix = new Matrix();
+        matrix.postRotate( (float) Math.toDegrees(angle) );
+        Bitmap rotatedRedArrow = Bitmap.createBitmap(
+                redArrow,
+                0,
+                0,
+                redArrow.getWidth(),
+                redArrow.getHeight(),
+                matrix,
+                true
+        );
+        //Disegno
+        c.drawBitmap(
+                rotatedRedArrow,
+                (float) newX - (redArrow.getWidth()/2),
+                (float) newY - (redArrow.getHeight()/2),
+                null
+        );
     }
 
 }
