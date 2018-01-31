@@ -159,8 +159,8 @@ public class MainActivity extends AppCompatActivity implements CalibrationHandle
     protected void onResume() {
         super.onResume();
         //TODO: controllare il funzionamento
-        SM.registerListener(positionFinderListener, gyroscope, SensorManager.SENSOR_DELAY_GAME, handler);
-        SM.registerListener(positionFinderListener, accelerometer, SensorManager.SENSOR_DELAY_GAME,handler);
+        SM.registerListener(positionFinderListener, gyroscope, SensorManager.SENSOR_DELAY_NORMAL, handler);
+        SM.registerListener(positionFinderListener, accelerometer, SensorManager.SENSOR_DELAY_NORMAL,handler);
     }
 
     @Override

@@ -17,7 +17,7 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface {
     //Logging
     private String TAG = "TrackingSurface";
 
-    //Last position
+    //Last position and center variables
     private PointD lastPosition;
     private PointD center;
 
@@ -60,7 +60,6 @@ public class TrackingSurface extends SurfaceView implements UpgradableSurface {
         holder.unlockCanvasAndPost(c);
     }
 
-    //Dato un nuovo punto costruisce una retta dal punto precendente al nuovo punto se questi sono diversi
     @Override
     public void updateSurface(PointD newP, double angle) {
         if (holder.getSurface().isValid()) {

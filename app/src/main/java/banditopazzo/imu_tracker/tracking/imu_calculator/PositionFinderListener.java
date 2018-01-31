@@ -223,8 +223,7 @@ public class PositionFinderListener implements SensorEventListener {
                 -this.statusMatrix[0][0]
         };
 
-        //Y negativo perchè la Y viene disegnata al contrario sullo schermo
-        surfaces[0].updateSurface(new PointD(statusMatrix[2][0],-statusMatrix[2][1]), correctDeg[0]);
+        surfaces[0].updateSurface(new PointD(statusMatrix[2][0],-statusMatrix[2][1]), correctDeg[0]); //Y negativo perchè la Y viene disegnata al contrario sullo schermo
         surfaces[1].updateSurface(new PointD(statusMatrix[2][0],statusMatrix[2][2]), correctDeg[1]);
         surfaces[2].updateSurface(new PointD(statusMatrix[2][1],statusMatrix[2][2]), correctDeg[2]);
     }
