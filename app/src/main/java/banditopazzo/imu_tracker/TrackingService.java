@@ -71,6 +71,7 @@ public class TrackingService extends Service {
     @Override
     public void onDestroy() {
         //Delete handler and stop handlerThread
+        SM.unregisterListener(positionFinderListener);
         handler = null;
         handlerThread.quit(); //TODO: meglio quitSafely(), modificare l'API target
         super.onDestroy();
@@ -78,7 +79,7 @@ public class TrackingService extends Service {
 
     private void startTracking(float[] accOffsets, float[] gyroOffsets) {
         //Create listeners
-        positionFinderListener = new PositionFinderListener(trackingSurfaces);
+        positionFinderListener = new PositionFinderListener(getApplicationContext());
         positionFinderListener.setGyroOffsets(gyroOffsets);
         positionFinderListener.setAccOffsets(accOffsets);
 
