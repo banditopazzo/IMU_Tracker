@@ -1,8 +1,8 @@
 package banditopazzo.imu_tracker;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -18,9 +18,6 @@ import banditopazzo.imu_tracker.calibration.CalibrationHandler;
 import banditopazzo.imu_tracker.calibration.models.CalibrationParams;
 import banditopazzo.imu_tracker.calibration.CalibrationTask;
 import banditopazzo.imu_tracker.calibration.models.OffsetsResults;
-import banditopazzo.imu_tracker.tracking.accelerometer.AccListener;
-import banditopazzo.imu_tracker.tracking.gyroscope.GyroListener;
-import banditopazzo.imu_tracker.tracking.imu_calculator.PositionFinderListener;
 import banditopazzo.imu_tracker.tracking.trackingBoard.TrackingSurface;
 
 import java.util.ArrayList;
@@ -44,18 +41,15 @@ public class MainActivity extends AppCompatActivity implements CalibrationHandle
      */
     private TrackingSurface[] trackingSurfaces;
 
-    //Sensors
+    //Sensor Manager for Calibration
     private SensorManager SM;
-    private Sensor accelerometer, gyroscope;
-
-    //Listeners
-    private AccListener accListener;
-    private GyroListener gyroListener;
-    private PositionFinderListener positionFinderListener;
 
     //Handler
     private HandlerThread handlerThread;
     private Handler handler;
+
+    //Service Intent
+    Intent serviceIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,15 +93,13 @@ public class MainActivity extends AppCompatActivity implements CalibrationHandle
         //Create sensor manager
         SM = (SensorManager) getSystemService(SENSOR_SERVICE);
 
-        //Get Accelerometer
-        accelerometer = SM.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
-        //Get Gyroscope
-        gyroscope = SM.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-
         //Set up Handler
         this.handlerThread = new HandlerThread("SensorHandlerThread");
         this.handlerThread.start();
         this.handler = new Handler(handlerThread.getLooper());
+
+        //Set up service intent
+        this.serviceIntent = new Intent(this, TrackingService.class);
 
         Log.d(TAG, "MainActivity Created");
     }
@@ -125,13 +117,8 @@ public class MainActivity extends AppCompatActivity implements CalibrationHandle
 
         } else {
 
-            //Stop Listeners
-            SM.unregisterListener(accListener); //stoppare prima acc
-            SM.unregisterListener(gyroListener);
-
-            //Delete Listeners
-            gyroListener=null;
-            accListener=null;
+            //Stop service
+            stopService(serviceIntent);
 
             //Cancella il percorso
             for (TrackingSurface t: trackingSurfaces) {
@@ -148,29 +135,11 @@ public class MainActivity extends AppCompatActivity implements CalibrationHandle
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
-        //TODO: controllare il funzionamento
-        SM.unregisterListener(positionFinderListener); //stoppare prima acc
-        SM.unregisterListener(positionFinderListener);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        //TODO: controllare il funzionamento
-        SM.registerListener(positionFinderListener, gyroscope, SensorManager.SENSOR_DELAY_NORMAL, handler);
-        SM.registerListener(positionFinderListener, accelerometer, SensorManager.SENSOR_DELAY_NORMAL,handler);
-    }
-
-    @Override
     protected void onDestroy() {
-        super.onDestroy();
-        SM.unregisterListener(positionFinderListener); //stoppare prima acc
-        SM.unregisterListener(positionFinderListener);
         //Delete handler and stop handlerThread
         handler = null;
         handlerThread.quit(); //TODO: meglio quitSafely(), modificare l'API target
+        super.onDestroy();
     }
 
     @Override
@@ -192,22 +161,11 @@ public class MainActivity extends AppCompatActivity implements CalibrationHandle
         Log.d("OFFSET", "accOffsets: "  + accOffsets[0] + " " + accOffsets[1] + " " + accOffsets[2]);
         Log.d("OFFSET", "gyroOffsets: " + gyroOffsets[0] + " " + gyroOffsets[1] + " " + gyroOffsets[2]);
 
-
-        //Set up listeners
-        gyroListener = new GyroListener();
-        gyroListener.setOffsets(gyroOffsets);
-        accListener = new AccListener(trackingSurfaces, gyroListener);
-        accListener.setOffsets(accOffsets);
-
-        gyroListener.setAccelerationManager(accListener);
-
-        positionFinderListener = new PositionFinderListener(trackingSurfaces);
-        positionFinderListener.setGyroOffsets(gyroOffsets);
-        positionFinderListener.setAccOffsets(accOffsets);
-
-        //Start listeners
-        SM.registerListener(positionFinderListener, gyroscope, SensorManager.SENSOR_DELAY_NORMAL, handler);
-        SM.registerListener(positionFinderListener, accelerometer, SensorManager.SENSOR_DELAY_NORMAL,handler);
+        //TODO: add surfaces
+        Bundle extras = this.serviceIntent.getExtras();
+        extras.putFloatArray("accOffsets", accOffsets);
+        extras.putFloatArray("gyroOffsets", gyroOffsets);
+        startService(serviceIntent);
 
         //Update status and UI
         running = true;
