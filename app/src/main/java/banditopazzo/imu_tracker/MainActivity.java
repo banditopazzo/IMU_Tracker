@@ -1,7 +1,6 @@
 package banditopazzo.imu_tracker;
 
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.hardware.SensorManager;
@@ -50,7 +49,7 @@ public class MainActivity extends AppCompatActivity implements CalibrationHandle
     private Handler handler;
 
     //Service Intent
-    private Intent serviceIntent;
+    Intent serviceIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -162,17 +161,10 @@ public class MainActivity extends AppCompatActivity implements CalibrationHandle
         Log.d("OFFSET", "accOffsets: "  + accOffsets[0] + " " + accOffsets[1] + " " + accOffsets[2]);
         Log.d("OFFSET", "gyroOffsets: " + gyroOffsets[0] + " " + gyroOffsets[1] + " " + gyroOffsets[2]);
 
-        //Start Broadcast Receiver
-        IntentFilter filter = new IntentFilter();
-        filter.addAction("banditopazzo.IMU_Tracker.updateInfo");
-        PositionUpdateReceiver receiver = new PositionUpdateReceiver(trackingSurfaces);
-        registerReceiver(receiver, filter);
-
-        //Start Service
-        Bundle extras = new Bundle();
+        //TODO: add surfaces
+        Bundle extras = this.serviceIntent.getExtras();
         extras.putFloatArray("accOffsets", accOffsets);
         extras.putFloatArray("gyroOffsets", gyroOffsets);
-        serviceIntent.putExtras(extras);
         startService(serviceIntent);
 
         //Update status and UI

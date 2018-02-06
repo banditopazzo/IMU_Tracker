@@ -1,8 +1,6 @@
 package banditopazzo.imu_tracker.tracking.models;
 
-import java.io.Serializable;
-
-public class PointD implements Serializable {
+public class PointD {
     private double x;
     private double y;
 

@@ -1,14 +1,11 @@
 package banditopazzo.imu_tracker.tracking.imu_calculator;
 
-import android.content.Context;
-import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.util.Log;
 import banditopazzo.imu_tracker.tracking.accelerometer.UpgradableSurface;
 import banditopazzo.imu_tracker.tracking.models.PointD;
-import banditopazzo.imu_tracker.tracking.models.UpdateInfo;
 
 import java.util.Date;
 
@@ -17,9 +14,6 @@ import static java.lang.Math.cos;
 import static java.lang.Math.tan;
 
 public class PositionFinderListener implements SensorEventListener {
-
-    //Context holder
-    Context ctx;
 
     //Status Matrix
     private double[][] statusMatrix;
@@ -46,9 +40,7 @@ public class PositionFinderListener implements SensorEventListener {
     private float[] accelerationFiltered;
 
     //Constructor
-    public PositionFinderListener(Context ctx) {
-
-        this.ctx = ctx;
+    public PositionFinderListener(UpgradableSurface[] surfaces) {
 
         //Initialize Status Matrix
         this.statusMatrix = new double[][]{
@@ -231,20 +223,9 @@ public class PositionFinderListener implements SensorEventListener {
                 -this.statusMatrix[0][0]
         };
 
-        //surfaces[0].updateSurface(new PointD(statusMatrix[2][0],-statusMatrix[2][1]), correctDeg[0]); //Y negativo perchè la Y viene disegnata al contrario sullo schermo
-        //surfaces[1].updateSurface(new PointD(statusMatrix[2][0],statusMatrix[2][2]), correctDeg[1]);
-        //surfaces[2].updateSurface(new PointD(statusMatrix[2][1],statusMatrix[2][2]), correctDeg[2]);
-
-        UpdateInfo updateInfo = new UpdateInfo(
-                new PointD(statusMatrix[2][0],-statusMatrix[2][1]), correctDeg[0],
-                new PointD(statusMatrix[2][0],statusMatrix[2][2]), correctDeg[1],
-                new PointD(statusMatrix[2][1],statusMatrix[2][2]), correctDeg[2]
-        );
-
-        Intent intent = new Intent();
-        intent.setAction("banditopazzo.IMU_Tracker.updateInfo");
-        intent.putExtra("data", updateInfo);
-        ctx.sendBroadcast(intent);
+        surfaces[0].updateSurface(new PointD(statusMatrix[2][0],-statusMatrix[2][1]), correctDeg[0]); //Y negativo perchè la Y viene disegnata al contrario sullo schermo
+        surfaces[1].updateSurface(new PointD(statusMatrix[2][0],statusMatrix[2][2]), correctDeg[1]);
+        surfaces[2].updateSurface(new PointD(statusMatrix[2][1],statusMatrix[2][2]), correctDeg[2]);
     }
     
     private double[][] scale3x3MatrixByNumber(double[][] matrix, double scalar) {
