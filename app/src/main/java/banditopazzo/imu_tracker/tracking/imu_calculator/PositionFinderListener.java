@@ -15,6 +15,9 @@ import static java.lang.Math.tan;
 
 public class PositionFinderListener implements SensorEventListener {
 
+    //Gravity
+    private final double g = 98;
+
     //Status Matrix
     private double[][] statusMatrix;
 
@@ -65,7 +68,7 @@ public class PositionFinderListener implements SensorEventListener {
         this.accT = new Date().getTime();
         //Set default offsets to ZERO
         this.accOffsets = new float[]{0,0,0};
-        this.accelerationFiltered = new float[]{0,0,0};
+        this.accelerationFiltered = new float[]{0,0,98};
 
     }
 
@@ -81,7 +84,7 @@ public class PositionFinderListener implements SensorEventListener {
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
         Sensor sensor = sensorEvent.sensor;
-        if (sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION) {
+        if (sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             handleAccelerometer(sensorEvent);
         } else if (sensor.getType() == Sensor.TYPE_GYROSCOPE) {
             handleGyroscope(sensorEvent);
@@ -178,9 +181,9 @@ public class PositionFinderListener implements SensorEventListener {
         change[0][1] = gyroSpeed[1]*cos(current[0][0])-gyroSpeed[2]*sin(current[0][0]);
         change[0][2] = sec(current[0][1])*(gyroSpeed[1]*sin(current[0][0])+gyroSpeed[2]*cos(current[0][0]));
 
-        change[1][0] = accAcceleration[0]-gyroSpeed[1]*current[1][2]+gyroSpeed[2]*current[1][1];
-        change[1][1] = accAcceleration[1]-gyroSpeed[2]*current[1][0]+gyroSpeed[0]*current[1][2];
-        change[1][2] = accAcceleration[2]-gyroSpeed[0]*current[1][1]+gyroSpeed[1]*current[1][0];
+        change[1][0] = accAcceleration[0]-gyroSpeed[1]*current[1][2]+gyroSpeed[2]*current[1][1]-g*sin(current[0][1]);
+        change[1][1] = accAcceleration[1]-gyroSpeed[2]*current[1][0]+gyroSpeed[0]*current[1][2]+g*cos(current[0][1])*sin(current[0][0]);
+        change[1][2] = accAcceleration[2]-gyroSpeed[0]*current[1][1]+gyroSpeed[1]*current[1][0]+g*cos(current[0][1])*cos(current[0][0]);
 
         change[2][0] = current[1][0]*cos(current[0][1])*cos(current[0][2])+current[1][1]*(sin(current[0][0])*sin(current[0][1])*cos(current[0][2])-cos(current[0][0])*sin(current[0][2]))+current[1][2]*(cos(current[0][0])*sin(current[0][1])*cos(current[0][2])+sin(current[0][0])*sin(current[0][2]));
         //modificato 3rd sin current 0 2 in cos
