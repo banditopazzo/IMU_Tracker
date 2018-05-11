@@ -4,16 +4,30 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.util.Log;
+import android.os.Environment;
 import banditopazzo.imu_tracker.tracking.accelerometer.UpgradableSurface;
 import banditopazzo.imu_tracker.tracking.models.PointD;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.io.File;
+import java.io.FileWriter;
+import java.util.Locale;
+
+import com.opencsv.CSVWriter;
 
 import static java.lang.Math.sin;
 import static java.lang.Math.cos;
 import static java.lang.Math.tan;
 
 public class PositionFinderListener implements SensorEventListener {
+
+    //CSV Writers
+    private CSVWriter percorsoWriter;
+    private CSVWriter markerWriter;
+
+    //Logger TAG
+    private final String TAG = "LISTENER";
 
     //Gravity
     private final double g = 98;
@@ -44,6 +58,10 @@ public class PositionFinderListener implements SensorEventListener {
 
     //Constructor
     public PositionFinderListener(UpgradableSurface[] surfaces) {
+
+        //Initialize CSV
+        percorsoWriter = createWriter("IMU_percorso-");
+        markerWriter   = createWriter("IMU_marker-");
 
         //Initialize Status Matrix
         this.statusMatrix = new double[][]{
@@ -201,7 +219,7 @@ public class PositionFinderListener implements SensorEventListener {
             }
         }
 
-        Log.d("TAG", ""
+        Log.d(TAG, ""
                 + " acc: " + printVector3(accAcceleration)
                 + " gyro: " + printVector3(gyroSpeed)
                 + " dt: " + dt
@@ -286,4 +304,34 @@ public class PositionFinderListener implements SensorEventListener {
 
         return  result;
     }
+
+    private CSVWriter createWriter(String baseName){
+        Date date=new Date();
+        String time = new SimpleDateFormat("yyyy.MM.dd-HH:mm:ss", Locale.ITALY).format(date);
+
+        //Setup File
+        String baseDir = Environment.getExternalStorageDirectory().getAbsolutePath();
+        String fileName = baseName + time + ".csv";
+        String filePath = baseDir + File.separator + fileName;
+        //Log.d(TAG, filePath);
+        File f = new File(filePath );
+        // File exist
+        if(f.exists() && !f.isDirectory()){
+            try {
+                return new CSVWriter(new FileWriter(filePath , true));
+            } catch (java.io.IOException e){
+                Log.d(TAG, "Errore apertura file");
+            }
+        }
+        else {
+            try {
+                return new CSVWriter(new FileWriter(filePath));
+            } catch (java.io.IOException e){
+                e.printStackTrace();
+                Log.d(TAG, "Errore apertura file");
+                System.exit(0);
+            }
+        }
+    }
+
 }
