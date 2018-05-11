@@ -57,9 +57,21 @@ public class PositionFinderListener implements SensorEventListener {
     //Constructor
     public PositionFinderListener(UpgradableSurface[] surfaces) {
 
-        //Initialize CSV
+        //Initialize CSV Writer
         percorsoWriter = createWriter("IMU_percorso-");
         markerWriter   = createWriter("IMU_marker-");
+
+        //Write CSV Header
+        String[] headCSV = {
+                "phi",
+                "theta",
+                "psi",
+                "x",
+                "y",
+                "z"
+        };
+        percorsoWriter.writeNext(headCSV);
+        markerWriter.writeNext(headCSV);
 
         //Initialize Status Matrix
         this.statusMatrix = new double[][]{
@@ -180,6 +192,17 @@ public class PositionFinderListener implements SensorEventListener {
                 dt
         );
         updateSurfaces();
+        String[] values = {
+                //Degree values
+                "" + this.statusMatrix[0][0],
+                "" + this.statusMatrix[0][1],
+                "" + this.statusMatrix[0][2],
+                //Position values
+                "" + this.statusMatrix[2][0],
+                "" + this.statusMatrix[2][1],
+                "" + this.statusMatrix[2][2]
+        };
+        percorsoWriter.writeNext(values);
 
     }
 
@@ -332,6 +355,20 @@ public class PositionFinderListener implements SensorEventListener {
         }
         System.exit(0);
         return null;
+    }
+
+    public void setMarker() {
+        String[] values = {
+                //Degree values
+                "" + this.statusMatrix[0][0],
+                "" + this.statusMatrix[0][1],
+                "" + this.statusMatrix[0][2],
+                //Position values
+                "" + this.statusMatrix[2][0],
+                "" + this.statusMatrix[2][1],
+                "" + this.statusMatrix[2][2]
+        };
+        markerWriter.writeNext(values);
     }
 
 }

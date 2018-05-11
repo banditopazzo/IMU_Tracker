@@ -14,6 +14,7 @@ import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
+import android.widget.Toast;
 import banditopazzo.imu_tracker.calibration.CalibrationHandler;
 import banditopazzo.imu_tracker.calibration.models.CalibrationParams;
 import banditopazzo.imu_tracker.calibration.CalibrationTask;
@@ -246,5 +247,17 @@ public class MainActivity extends AppCompatActivity implements CalibrationHandle
 
         return scaledAxisIndexList;
     }
+
+    public void markPosition(View v) {
+        if (running) {
+            this.positionFinderListener.setMarker();
+            Toast toast = Toast.makeText(getApplicationContext(), "Marked!!", Toast.LENGTH_SHORT);
+            toast.show();
+        } else {
+            Toast toast = Toast.makeText(getApplicationContext(), "Start tracking first!!", Toast.LENGTH_SHORT);
+            toast.show();
+        }
+    }
+
 }
 
