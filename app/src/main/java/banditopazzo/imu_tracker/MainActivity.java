@@ -100,7 +100,7 @@ public class MainActivity extends AppCompatActivity implements CalibrationHandle
         SM = (SensorManager) getSystemService(SENSOR_SERVICE);
 
         //Get Accelerometer
-        accelerometer = SM.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        accelerometer = SM.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
         //Get Gyroscope
         gyroscope = SM.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 

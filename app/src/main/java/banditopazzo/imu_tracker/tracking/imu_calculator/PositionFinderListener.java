@@ -29,8 +29,6 @@ public class PositionFinderListener implements SensorEventListener {
     //Logger TAG
     private final String TAG = "LISTENER";
 
-    //Gravity
-    private final double g = 98;
 
     //Status Matrix
     private double[][] statusMatrix;
@@ -86,7 +84,7 @@ public class PositionFinderListener implements SensorEventListener {
         this.accT = new Date().getTime();
         //Set default offsets to ZERO
         this.accOffsets = new float[]{0,0,0};
-        this.accelerationFiltered = new float[]{0,0,98};
+        this.accelerationFiltered = new float[]{0,0,0};
 
     }
 
@@ -102,7 +100,7 @@ public class PositionFinderListener implements SensorEventListener {
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
         Sensor sensor = sensorEvent.sensor;
-        if (sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+        if (sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION) {
             handleAccelerometer(sensorEvent);
         } else if (sensor.getType() == Sensor.TYPE_GYROSCOPE) {
             handleGyroscope(sensorEvent);
