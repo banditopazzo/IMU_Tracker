@@ -199,9 +199,9 @@ public class PositionFinderListener implements SensorEventListener {
         change[0][1] = gyroSpeed[1]*cos(current[0][0])-gyroSpeed[2]*sin(current[0][0]);
         change[0][2] = sec(current[0][1])*(gyroSpeed[1]*sin(current[0][0])+gyroSpeed[2]*cos(current[0][0]));
 
-        change[1][0] = accAcceleration[0]-gyroSpeed[1]*current[1][2]+gyroSpeed[2]*current[1][1]-g*sin(current[0][1]);
-        change[1][1] = accAcceleration[1]-gyroSpeed[2]*current[1][0]+gyroSpeed[0]*current[1][2]+g*cos(current[0][1])*sin(current[0][0]);
-        change[1][2] = accAcceleration[2]-gyroSpeed[0]*current[1][1]+gyroSpeed[1]*current[1][0]+g*cos(current[0][1])*cos(current[0][0]);
+        change[1][0] = accAcceleration[0]-gyroSpeed[1]*current[1][2]+gyroSpeed[2]*current[1][1];
+        change[1][1] = accAcceleration[1]-gyroSpeed[2]*current[1][0]+gyroSpeed[0]*current[1][2];
+        change[1][2] = accAcceleration[2]-gyroSpeed[0]*current[1][1]+gyroSpeed[1]*current[1][0];
 
         change[2][0] = current[1][0]*cos(current[0][1])*cos(current[0][2])+current[1][1]*(sin(current[0][0])*sin(current[0][1])*cos(current[0][2])-cos(current[0][0])*sin(current[0][2]))+current[1][2]*(cos(current[0][0])*sin(current[0][1])*cos(current[0][2])+sin(current[0][0])*sin(current[0][2]));
         //modificato 3rd sin current 0 2 in cos
@@ -305,7 +305,7 @@ public class PositionFinderListener implements SensorEventListener {
         return  result;
     }
 
-    private CSVWriter createWriter(String baseName){
+    private CSVWriter createWriter(String baseName) {
         Date date=new Date();
         String time = new SimpleDateFormat("yyyy.MM.dd-HH:mm:ss", Locale.ITALY).format(date);
 
@@ -332,6 +332,8 @@ public class PositionFinderListener implements SensorEventListener {
                 System.exit(0);
             }
         }
+        System.exit(0);
+        return null;
     }
 
 }
