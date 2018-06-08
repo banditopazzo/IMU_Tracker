@@ -371,4 +371,13 @@ public class PositionFinderListener implements SensorEventListener {
         markerWriter.writeNext(values);
     }
 
+    public void saveFiles(){
+        try {
+            this.percorsoWriter.close();
+            this.markerWriter.close();
+        } catch (java.io.IOException e) {
+            Log.d(TAG,"Errore salvataggio files");
+        }
+    }
+
 }
